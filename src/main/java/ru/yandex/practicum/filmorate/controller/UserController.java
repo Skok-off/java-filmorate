@@ -34,7 +34,7 @@ public class UserController {
 
     @PostMapping
     public User create(@Valid @RequestBody User newUser) {
-        if(newUser.getEmail() == null || newUser.getEmail().isBlank()) {
+        if (newUser.getEmail() == null || newUser.getEmail().isBlank()) {
             handleError(ERROR_MESSAGES, "InvalidEmail", "POST");
         }
         if (users.values().stream()
