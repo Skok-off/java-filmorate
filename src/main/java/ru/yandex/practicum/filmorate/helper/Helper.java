@@ -16,8 +16,8 @@ public abstract class Helper {
         return ++currentMaxId;
     }
 
-    public static void handleError(Map<String, String> errorMessages, String errorKeyOrMessage, String requestType) {
-        String message = requestType + " " + errorMessages.getOrDefault(errorKeyOrMessage, errorKeyOrMessage);
+    public static void handleError(String requestType, String errorMessage) {
+        String message = requestType + " " + errorMessage;
         log.error(message);
         throw new ValidationException(message);
     }

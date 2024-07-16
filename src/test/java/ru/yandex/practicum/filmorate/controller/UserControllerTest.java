@@ -4,9 +4,9 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.helper.Constants;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class UserControllerTest {
-    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private UserController userController;
 
     @SneakyThrows
@@ -26,7 +25,7 @@ class UserControllerTest {
         user.setEmail(email);
         user.setLogin(login);
         user.setName(name);
-        user.setBirthday(birthday == null ? null : simpleDateFormat.parse(birthday));
+        user.setBirthday(birthday == null ? null : Constants.SIMPLE_DATE_FORMAT.parse(birthday));
         return user;
     }
 
@@ -73,42 +72,42 @@ class UserControllerTest {
         User user2 = getNewTestUser(2L, "user1@test.com", "login2", "name2", "2000-01-01");
         userController.create(user1);
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.create(user2));
-        assertEquals("POST Данный email принадлежит другому пользователю", exception.getMessage());
+        assertEquals("POST Email уже используется.", exception.getMessage());
     }
 
     @Test
     void createNullEmail() {
         User user1 = getNewTestUser(1L, null, "login1", "name1", "1900-01-01");
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.create(user1));
-        assertEquals("POST Должен быть указан email", exception.getMessage());
+        assertEquals("POST Email не указан.", exception.getMessage());
     }
 
     @Test
     void createNullLogin() {
         User user1 = getNewTestUser(1L, "user1@test.com", null, "name1", "1900-01-01");
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.create(user1));
-        assertEquals("POST Логин не может быть пустым и содержать пробелы", exception.getMessage());
+        assertEquals("POST Логин не может быть пустым или содержать пробелы.", exception.getMessage());
     }
 
     @Test
     void createLoginWithSpaces() {
         User user1 = getNewTestUser(1L, "user1@test.com", "lo gin", "name1", "1900-01-01");
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.create(user1));
-        assertEquals("POST Логин не может быть пустым и содержать пробелы", exception.getMessage());
+        assertEquals("POST Логин не может быть пустым или содержать пробелы.", exception.getMessage());
     }
 
     @Test
     void createFeatureBirthday() {
         User user1 = getNewTestUser(1L, "user1@test.com", "login1", "name1", "3000-01-01");
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.create(user1));
-        assertEquals("POST Дата рождения должна быть указана и не может быть в будущем", exception.getMessage());
+        assertEquals("POST Некорректная дата рождения.", exception.getMessage());
     }
 
     @Test
     void createNullBirthday() {
         User user1 = getNewTestUser(1L, "user1@test.com", "login1", "name1", null);
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.create(user1));
-        assertEquals("POST Дата рождения должна быть указана и не может быть в будущем", exception.getMessage());
+        assertEquals("POST Некорректная дата рождения.", exception.getMessage());
     }
 
     @Test
@@ -129,7 +128,7 @@ class UserControllerTest {
         userController.create(user1);
         userController.create(user2);
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.update(user2Copy));
-        assertEquals("PUT Данный email принадлежит другому пользователю", exception.getMessage());
+        assertEquals("PUT Email уже используется.", exception.getMessage());
     }
 
     @Test
@@ -161,7 +160,7 @@ class UserControllerTest {
         copy2.setLogin("lo gin");
         userController.create(copy1);
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.update(copy2));
-        assertEquals("PUT Логин не может быть пустым и содержать пробелы", exception.getMessage());
+        assertEquals("PUT Логин не может быть пустым или содержать пробелы.", exception.getMessage());
     }
 
     @SneakyThrows
@@ -169,10 +168,10 @@ class UserControllerTest {
     void updateFeatureBirthday() {
         User copy1 = getNewTestUser(1L, "user1@test.com", "login1", "name1", "2000-01-01");
         User copy2 = copyUser(copy1);
-        copy2.setBirthday(simpleDateFormat.parse("3000-01-01"));
+        copy2.setBirthday(Constants.SIMPLE_DATE_FORMAT.parse("3000-01-01"));
         userController.create(copy1);
         ValidationException exception = assertThrows(ValidationException.class, () -> userController.update(copy2));
-        assertEquals("PUT Дата рождения должна быть указана и не может быть в будущем", exception.getMessage());
+        assertEquals("PUT Некорректная дата рождения.", exception.getMessage());
     }
 
     @Test

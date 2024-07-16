@@ -13,11 +13,6 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/*
-тут не до конца понял задание, аннотациями для валидации помечен только email - сделал для него тесты
-либо надо было другие поля так же пометить для валидации, но по задаче должны вызываться исключения в контроллерах
-поэтому обработка других полей идет в контроллерах, а не через аннотации
-*/
 public class UserTest {
     private Validator validator;
 

@@ -3,18 +3,19 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.helper.Constants;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FilmControllerTest {
-    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private FilmController filmController;
 
     @BeforeEach
@@ -28,7 +29,7 @@ class FilmControllerTest {
         film.setId(id);
         film.setName(name);
         film.setDescription(description);
-        film.setReleaseDate(releaseDate == null ? null : simpleDateFormat.parse(releaseDate));
+        film.setReleaseDate(releaseDate == null ? null : Constants.SIMPLE_DATE_FORMAT.parse(releaseDate));
         film.setDuration(duration);
         return film;
     }
@@ -68,23 +69,22 @@ class FilmControllerTest {
     void createNullName() {
         Film invalidFilm = getNewTestFilm(1L, null, "description1", "2001-01-01", 101);
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.create(invalidFilm));
-        assertEquals("POST Название фильма не может быть пустым", exception.getMessage());
+        assertEquals("POST Название фильма не может быть пустым.", exception.getMessage());
     }
 
     @Test
     void createBlankName() {
         Film invalidFilm = getNewTestFilm(1L, "", "description1", "2001-01-01", 101);
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.create(invalidFilm));
-        assertEquals("POST Название фильма не может быть пустым", exception.getMessage());
+        assertEquals("POST Название фильма не может быть пустым.", exception.getMessage());
     }
 
     @SneakyThrows
     @Test
     void createLongDescription() {
         Film invalidFilm = getNewTestFilm(1L, "film1", "description ".repeat(21), "2001-01-01", 101);
-        Integer maxLength = (Integer) ReflectionTestUtils.getField(filmController, "MAX_DESCRIPTION_LENGTH");
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.create(invalidFilm));
-        assertEquals("POST Длина описания не должна превышать " + maxLength + " символов", exception.getMessage());
+        assertEquals("POST Описание фильма слишком длинное.", exception.getMessage());
     }
 
     @Test
@@ -98,36 +98,30 @@ class FilmControllerTest {
     @Test
     void createNullReleaseDate() {
         Film invalidFilm = getNewTestFilm(1L, "film1", "description", null, 101);
-        String minDate = simpleDateFormat.format((Date) ReflectionTestUtils.getField(filmController, "MIN_RELEASE_DATE"));
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.create(invalidFilm));
-        assertEquals("POST Дата релиза не должна быть раньше " + minDate, exception.getMessage());
+        assertEquals("POST Дата релиза слишком старая.", exception.getMessage());
     }
 
     @Test
     void createBeforeReleaseDate() {
-        Date minDate = (Date) ReflectionTestUtils.getField(filmController, "MIN_RELEASE_DATE");
-        Calendar calendar = Calendar.getInstance();
-        assert minDate != null;
-        calendar.setTime(minDate);
-        calendar.add(Calendar.DAY_OF_MONTH, -1);
-        String invalidDate = simpleDateFormat.format(calendar.getTime());
-        Film invalidFilm = getNewTestFilm(1L, "film1", "description", invalidDate, 101);
+        String beforeMinDate = "1000-01-01";
+        Film invalidFilm = getNewTestFilm(1L, "film1", "description", beforeMinDate, 101);
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.create(invalidFilm));
-        assertEquals("POST Дата релиза не должна быть раньше " + simpleDateFormat.format(minDate), exception.getMessage());
+        assertEquals("POST Дата релиза слишком старая.", exception.getMessage());
     }
 
     @Test
     void createNullDuration() {
         Film invalidFilm = getNewTestFilm(1L, "film1", "description", "2001-01-01", null);
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.create(invalidFilm));
-        assertEquals("POST Продолжительность фильма должна быть положительным числом", exception.getMessage());
+        assertEquals("POST Длительность фильма должна быть положительной.", exception.getMessage());
     }
 
     @Test
     void createNegativeDuration() {
         Film invalidFilm = getNewTestFilm(1L, "film1", "description", "2001-01-01", -1);
         ValidationException exception = assertThrows(ValidationException.class, () -> filmController.create(invalidFilm));
-        assertEquals("POST Продолжительность фильма должна быть положительным числом", exception.getMessage());
+        assertEquals("POST Длительность фильма должна быть положительной.", exception.getMessage());
     }
 
     @Test
