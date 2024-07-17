@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.helper.Constants;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,29 +20,8 @@ class FilmControllerTest {
     private FilmController filmController;
 
     @BeforeEach
-    void setUp() {
-        filmController = new FilmController();
-    }
-
-    @SneakyThrows
-    private Film getNewTestFilm(Long id, String name, String description, String releaseDate, Integer duration) {
-        Film film = new Film();
-        film.setId(id);
-        film.setName(name);
-        film.setDescription(description);
-        film.setReleaseDate(releaseDate == null ? null : Constants.SIMPLE_DATE_FORMAT.parse(releaseDate));
-        film.setDuration(duration);
-        return film;
-    }
-
-    private Film copyFilm(Film film) {
-        Film copy = new Film();
-        copy.setId(film.getId());
-        copy.setName(film.getName());
-        copy.setDescription(film.getDescription());
-        copy.setReleaseDate(film.getReleaseDate());
-        copy.setDuration(film.getDuration());
-        return copy;
+    public void setUp() {
+        filmController = new FilmController(new FilmService());
     }
 
     @Test
@@ -149,5 +129,26 @@ class FilmControllerTest {
         filmController.create(copyFilm(expectedFilm));
         Film actualFilm = filmController.update(copyFilm(updateNulls));
         assertEquals(expectedFilm, actualFilm, "Поля не должны обновиться на null");
+    }
+
+    @SneakyThrows
+    private Film getNewTestFilm(Long id, String name, String description, String releaseDate, Integer duration) {
+        Film film = new Film();
+        film.setId(id);
+        film.setName(name);
+        film.setDescription(description);
+        film.setReleaseDate(releaseDate == null ? null : Constants.SIMPLE_DATE_FORMAT.parse(releaseDate));
+        film.setDuration(duration);
+        return film;
+    }
+
+    private Film copyFilm(Film film) {
+        Film copy = new Film();
+        copy.setId(film.getId());
+        copy.setName(film.getName());
+        copy.setDescription(film.getDescription());
+        copy.setReleaseDate(film.getReleaseDate());
+        copy.setDuration(film.getDuration());
+        return copy;
     }
 }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.helper.Constants;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,31 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class UserControllerTest {
     private UserController userController;
 
-    @SneakyThrows
-    private User getNewTestUser(Long id, String email, String login, String name, String birthday) {
-        User user = new User();
-        user.setId(id);
-        user.setEmail(email);
-        user.setLogin(login);
-        user.setName(name);
-        user.setBirthday(birthday == null ? null : Constants.SIMPLE_DATE_FORMAT.parse(birthday));
-        return user;
-    }
-
-    //копирую в новый экземпляр, чтобы не сравнивать с самим собой
-    private User copyUser(User user) {
-        User newUser = new User();
-        newUser.setId(user.getId());
-        newUser.setEmail(user.getEmail());
-        newUser.setLogin(user.getLogin());
-        newUser.setName(user.getName());
-        newUser.setBirthday(user.getBirthday());
-        return newUser;
-    }
-
     @BeforeEach
     public void setUp() {
-        userController = new UserController();
+        userController = new UserController(new UserService());
     }
 
     @Test
@@ -183,5 +162,27 @@ class UserControllerTest {
         userController.create(copy1);
         User actualUser = userController.update(copy2);
         assertEquals(expectedUser, actualUser, "Дата рождения не должна измениться");
+    }
+
+    @SneakyThrows
+    private User getNewTestUser(Long id, String email, String login, String name, String birthday) {
+        User user = new User();
+        user.setId(id);
+        user.setEmail(email);
+        user.setLogin(login);
+        user.setName(name);
+        user.setBirthday(birthday == null ? null : Constants.SIMPLE_DATE_FORMAT.parse(birthday));
+        return user;
+    }
+
+    //копирую в новый экземпляр, чтобы не сравнивать с самим собой
+    private User copyUser(User user) {
+        User newUser = new User();
+        newUser.setId(user.getId());
+        newUser.setEmail(user.getEmail());
+        newUser.setLogin(user.getLogin());
+        newUser.setName(user.getName());
+        newUser.setBirthday(user.getBirthday());
+        return newUser;
     }
 }

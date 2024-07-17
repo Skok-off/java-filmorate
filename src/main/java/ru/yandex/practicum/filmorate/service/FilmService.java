@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.errors.ErrorCode;
 import ru.yandex.practicum.filmorate.helper.Constants;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -13,6 +14,7 @@ import static ru.yandex.practicum.filmorate.helper.Helper.getNextId;
 import static ru.yandex.practicum.filmorate.helper.Helper.handleError;
 
 @Slf4j
+@Service
 public class FilmService {
     private final Map<Long, Film> films = new HashMap<>();
 
