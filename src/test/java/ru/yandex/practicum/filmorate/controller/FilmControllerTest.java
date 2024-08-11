@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.helper.Constants;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -120,8 +121,8 @@ class FilmControllerTest {
         Film film1 = getNewTestFilm(1L, "film1", "description1", "2001-01-01", 101);
         Film film2 = getNewTestFilm(2L, "film2", "description2", "2002-01-01", 102);
         filmController.create(film1);
-        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.update(film2));
-        assertEquals("PUT Фильм с id = 2 не найден", exception.getMessage());
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> filmController.update(film2));
+        assertEquals("Фильм с id = 2 не найден", exception.getMessage());
     }
 
     @Test
