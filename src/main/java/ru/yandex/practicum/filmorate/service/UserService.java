@@ -1,85 +1,79 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.errors.ErrorCode;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
-import java.util.*;
-
-import static ru.yandex.practicum.filmorate.helper.Helper.getNextId;
-import static ru.yandex.practicum.filmorate.helper.Helper.handleError;
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class UserService {
-    private final Map<Long, User> users = new HashMap<>();
+    private final InMemoryUserStorage inMemoryUserStorage;
 
     public Collection<User> findAll() {
-        log.info("Запрошен список пользователей");
-        return users.values();
+        return inMemoryUserStorage.findAll();
     }
 
     public User create(User newUser) {
-        validateCreateUser(newUser);
-        users.put(newUser.getId(), newUser);
-        log.info("Добавлен пользователь \"" + newUser.getName() + "\" с id = " + newUser.getId());
-        return newUser;
-    }
-
-    private void validateCreateUser(User newUser) {
-        if (newUser.getEmail() == null || newUser.getEmail().isBlank()) {
-            handleError("POST", ErrorCode.NULL_OR_BLANK_EMAIL.getMessage());
-        }
-        if (users.values().stream()
-                .anyMatch(user -> user.getEmail().equals(newUser.getEmail()))) {
-            handleError("POST", ErrorCode.DUPLICATE_EMAIL.getMessage());
-        }
-        if (newUser.getLogin() == null || newUser.getLogin().isBlank() || newUser.getLogin().contains(" ")) {
-            handleError("POST", ErrorCode.NULL_OR_BLANK_LOGIN.getMessage());
-        }
-        if (newUser.getBirthday() == null || newUser.getBirthday().after(new Date())) {
-            handleError("POST", ErrorCode.INCORRECT_BIRTHDAY.getMessage());
-        }
-        newUser.setId(getNextId(users));
-        if (newUser.getName() == null || newUser.getName().isBlank()) {
-            log.info("Имя заменено на логин для id = " + newUser.getId());
-            newUser.setName(newUser.getLogin());
-        }
+        return inMemoryUserStorage.create(newUser);
     }
 
     public User update(User newUser) {
-        validateUpdateUser(newUser);
-        User oldUser = users.get(newUser.getId());
-        oldUser.setEmail((newUser.getEmail() == null || newUser.getEmail().isBlank()) ? oldUser.getEmail() : newUser.getEmail());
-        oldUser.setLogin((newUser.getLogin() == null) ? oldUser.getLogin() : newUser.getLogin());
-        oldUser.setName((newUser.getName() == null) ? oldUser.getName() : newUser.getName());
-        oldUser.setBirthday((newUser.getBirthday() == null) ? oldUser.getBirthday() : newUser.getBirthday());
-        log.info("Обновлен пользователь с id = " + newUser.getId());
-        return oldUser;
+        return inMemoryUserStorage.update(newUser);
     }
 
-    private void validateUpdateUser(User newUser) {
-        if (newUser.getId() == null) {
-            handleError("PUT", ErrorCode.ID_IS_NULL.getMessage());
-        }
-        Long id = newUser.getId();
-        if (!users.containsKey(id)) {
-            handleError("PUT", "Пользователь с id = " + id + " не найден");
-        }
-        if (newUser.getEmail() != null && users.values().stream()
-                .anyMatch(user -> user.getEmail().equals(newUser.getEmail()) && !Objects.equals(user.getId(), newUser.getId()))) {
-            handleError("PUT", ErrorCode.DUPLICATE_EMAIL.getMessage());
-        }
-        if (newUser.getLogin() != null && (newUser.getLogin().isBlank() || newUser.getLogin().contains(" "))) {
-            handleError("PUT", ErrorCode.NULL_OR_BLANK_LOGIN.getMessage());
-        }
-        if (newUser.getBirthday() != null && newUser.getBirthday().after(new Date())) {
-            handleError("PUT", ErrorCode.INCORRECT_BIRTHDAY.getMessage());
-        }
-        if (newUser.getName() != null && newUser.getName().isBlank()) {
-            log.info("Имя заменено на логин для id = " + id);
-            newUser.setName(newUser.getLogin());
-        }
+    public void addFriend(Long userId, Long friendId) {
+        if (userId.equals(friendId)) throw new ValidationException("Нельзя добавить в друзья самого себя.");
+        User user = inMemoryUserStorage.getUser(userId);
+        if (user == null) throw new NotFoundException("Пользователь с id = " + userId + " не найден.");
+        User friend = inMemoryUserStorage.getUser(friendId);
+        if (friend == null) throw new NotFoundException("Пользователь с id = " + friendId + " не найден.");
+        if (user.getFriends().contains(friendId))
+            throw new ValidationException("Пользователи " + userId + " и " + friendId + " уже дружат.");
+        user.getFriends().add(friendId);
+        friend.getFriends().add(userId);
+        log.info("Пользователи {} и {} подружились.", userId, friendId);
+    }
+
+    public void deleteFriend(Long userId, Long friendId) {
+        if (userId.equals(friendId)) throw new ValidationException("Нельзя удалять из друзей самого себя.");
+        User user = inMemoryUserStorage.getUser(userId);
+        if (user == null) throw new NotFoundException("Пользователь с id = " + userId + " не найден.");
+        User friend = inMemoryUserStorage.getUser(friendId);
+        if (friend == null) throw new NotFoundException("Пользователь с id = " + friendId + " не найден.");
+        //if(!user.getFriends().contains(friendId)) throw new ValidationException("Пользователи " + userId + " и " + friendId + " не дружат.");
+        user.getFriends().remove(friendId);
+        friend.getFriends().remove(userId);
+        log.info("Пользователи {} и {} больше не друзья.", userId, friendId);
+    }
+
+    public Collection<User> findFriends(Long id) {
+        if (id == null) throw new ValidationException("Не указан id.");
+        if (inMemoryUserStorage.getUser(id) == null) throw new NotFoundException("Пользователь не найден.");
+        return inMemoryUserStorage.getUser(id).getFriends().stream()
+                .map(inMemoryUserStorage::getUser)
+                .collect(Collectors.toSet());
+    }
+
+    public Collection<User> findCommonFriends(Long userId, Long otherId) {
+        if (userId == null || otherId == null) throw new ValidationException("Не указан id.");
+        if (inMemoryUserStorage.getUser(userId) == null)
+            throw new NotFoundException("Пользователь " + userId + " не найден.");
+        if (inMemoryUserStorage.getUser(otherId) == null)
+            throw new NotFoundException("Пользователь " + otherId + " не найден.");
+        Set<Long> userFriends = inMemoryUserStorage.getUser(userId).getFriends();
+        Set<Long> otherFriends = inMemoryUserStorage.getUser(otherId).getFriends();
+        return userFriends.stream()
+                .filter(otherFriends::contains)
+                .map(inMemoryUserStorage::getUser)
+                .collect(Collectors.toSet());
     }
 }
