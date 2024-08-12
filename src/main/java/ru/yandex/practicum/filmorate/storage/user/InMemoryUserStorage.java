@@ -31,21 +31,21 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     private void validateCreateUser(User newUser) {
-        if (newUser.getEmail() == null || newUser.getEmail().isBlank()) {
+        if (Objects.isNull(newUser.getEmail()) || newUser.getEmail().isBlank()) {
             handleError("POST", ErrorCode.NULL_OR_BLANK_EMAIL.getMessage());
         }
         if (users.values().stream()
                 .anyMatch(user -> user.getEmail().equals(newUser.getEmail()))) {
             handleError("POST", ErrorCode.DUPLICATE_EMAIL.getMessage());
         }
-        if (newUser.getLogin() == null || newUser.getLogin().isBlank() || newUser.getLogin().contains(" ")) {
+        if (Objects.isNull(newUser.getLogin()) || newUser.getLogin().isBlank() || newUser.getLogin().contains(" ")) {
             handleError("POST", ErrorCode.NULL_OR_BLANK_LOGIN.getMessage());
         }
-        if (newUser.getBirthday() == null || newUser.getBirthday().after(new Date())) {
+        if (Objects.isNull(newUser.getBirthday()) || newUser.getBirthday().after(new Date())) {
             handleError("POST", ErrorCode.INCORRECT_BIRTHDAY.getMessage());
         }
         newUser.setId(getNextId(users));
-        if (newUser.getName() == null || newUser.getName().isBlank()) {
+        if (Objects.isNull(newUser.getName()) || newUser.getName().isBlank()) {
             log.info("Имя заменено на логин для id = " + newUser.getId());
             newUser.setName(newUser.getLogin());
         }
@@ -55,33 +55,33 @@ public class InMemoryUserStorage implements UserStorage {
     public User update(User newUser) {
         validateUpdateUser(newUser);
         User oldUser = users.get(newUser.getId());
-        oldUser.setEmail((newUser.getEmail() == null || newUser.getEmail().isBlank()) ? oldUser.getEmail() : newUser.getEmail());
-        oldUser.setLogin((newUser.getLogin() == null) ? oldUser.getLogin() : newUser.getLogin());
-        oldUser.setName((newUser.getName() == null) ? oldUser.getName() : newUser.getName());
-        oldUser.setBirthday((newUser.getBirthday() == null) ? oldUser.getBirthday() : newUser.getBirthday());
+        oldUser.setEmail((Objects.isNull(newUser.getEmail()) || newUser.getEmail().isBlank()) ? oldUser.getEmail() : newUser.getEmail());
+        oldUser.setLogin((Objects.isNull(newUser.getLogin())) ? oldUser.getLogin() : newUser.getLogin());
+        oldUser.setName((Objects.isNull(newUser.getName())) ? oldUser.getName() : newUser.getName());
+        oldUser.setBirthday((Objects.isNull(newUser.getBirthday())) ? oldUser.getBirthday() : newUser.getBirthday());
         log.info("Обновлен пользователь с id = " + newUser.getId());
         return oldUser;
     }
 
     private void validateUpdateUser(User newUser) {
-        if (newUser.getId() == null) {
+        if (Objects.isNull(newUser.getId())) {
             handleError("PUT", ErrorCode.ID_IS_NULL.getMessage());
         }
         Long id = newUser.getId();
         if (!users.containsKey(id)) {
             throw new NotFoundException("Пользователь с id = " + id + " не найден");
         }
-        if (newUser.getEmail() != null && users.values().stream()
+        if (Objects.nonNull(newUser.getEmail()) && users.values().stream()
                 .anyMatch(user -> user.getEmail().equals(newUser.getEmail()) && !Objects.equals(user.getId(), newUser.getId()))) {
             handleError("PUT", ErrorCode.DUPLICATE_EMAIL.getMessage());
         }
-        if (newUser.getLogin() != null && (newUser.getLogin().isBlank() || newUser.getLogin().contains(" "))) {
+        if (Objects.nonNull(newUser.getLogin()) && (newUser.getLogin().isBlank() || newUser.getLogin().contains(" "))) {
             handleError("PUT", ErrorCode.NULL_OR_BLANK_LOGIN.getMessage());
         }
-        if (newUser.getBirthday() != null && newUser.getBirthday().after(new Date())) {
+        if (Objects.nonNull(newUser.getBirthday()) && newUser.getBirthday().after(new Date())) {
             handleError("PUT", ErrorCode.INCORRECT_BIRTHDAY.getMessage());
         }
-        if (newUser.getName() != null && newUser.getName().isBlank()) {
+        if (Objects.nonNull(newUser.getName()) && newUser.getName().isBlank()) {
             log.info("Имя заменено на логин для id = " + id);
             newUser.setName(newUser.getLogin());
         }

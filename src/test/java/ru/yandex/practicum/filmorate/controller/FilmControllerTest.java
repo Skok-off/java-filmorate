@@ -11,10 +11,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -140,7 +137,7 @@ class FilmControllerTest {
         film.setId(id);
         film.setName(name);
         film.setDescription(description);
-        film.setReleaseDate(releaseDate == null ? null : Constants.SIMPLE_DATE_FORMAT.parse(releaseDate));
+        film.setReleaseDate(Objects.isNull(releaseDate) ? null : Constants.SIMPLE_DATE_FORMAT.parse(releaseDate));
         film.setDuration(duration);
         return film;
     }

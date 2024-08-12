@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,10 +50,10 @@ public class FilmService {
     }
 
     private void validateFilmAndUserForLike(Long id, Long userId) {
-        if (id == null) throw new ValidationException("Не указан id фильма.");
-        if (userId == null) throw new ValidationException("Не указан id пользователя.");
-        if (inMemoryFilmStorage.getFilm(id) == null) throw new NotFoundException("Фильм не найден.");
-        if (inMemoryUserStorage.getUser(userId) == null) throw new NotFoundException("Пользователь не найден.");
+        if (Objects.isNull(id)) throw new ValidationException("Не указан id фильма.");
+        if (Objects.isNull(userId)) throw new ValidationException("Не указан id пользователя.");
+        if (Objects.isNull(inMemoryFilmStorage.getFilm(id))) throw new NotFoundException("Фильм не найден.");
+        if (Objects.isNull(inMemoryUserStorage.getUser(userId))) throw new NotFoundException("Пользователь не найден.");
     }
 
     public Collection<Film> topFilms(int count) {
