@@ -3,15 +3,15 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.helper.Constants;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -21,7 +21,7 @@ class FilmControllerTest {
 
     @BeforeEach
     public void setUp() {
-        filmController = new FilmController(new FilmService());
+        filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), new InMemoryUserStorage()));
     }
 
     @Test
@@ -118,8 +118,8 @@ class FilmControllerTest {
         Film film1 = getNewTestFilm(1L, "film1", "description1", "2001-01-01", 101);
         Film film2 = getNewTestFilm(2L, "film2", "description2", "2002-01-01", 102);
         filmController.create(film1);
-        ValidationException exception = assertThrows(ValidationException.class, () -> filmController.update(film2));
-        assertEquals("PUT Фильм с id = 2 не найден", exception.getMessage());
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> filmController.update(film2));
+        assertEquals("Фильм с id = 2 не найден", exception.getMessage());
     }
 
     @Test
@@ -137,7 +137,7 @@ class FilmControllerTest {
         film.setId(id);
         film.setName(name);
         film.setDescription(description);
-        film.setReleaseDate(releaseDate == null ? null : Constants.SIMPLE_DATE_FORMAT.parse(releaseDate));
+        film.setReleaseDate(Objects.isNull(releaseDate) ? null : Constants.SIMPLE_DATE_FORMAT.parse(releaseDate));
         film.setDuration(duration);
         return film;
     }

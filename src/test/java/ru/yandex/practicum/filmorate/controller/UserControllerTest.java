@@ -7,11 +7,9 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.helper.Constants;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -21,7 +19,7 @@ class UserControllerTest {
 
     @BeforeEach
     public void setUp() {
-        userController = new UserController(new UserService());
+        userController = new UserController(new UserService(new InMemoryUserStorage()));
     }
 
     @Test
@@ -171,7 +169,7 @@ class UserControllerTest {
         user.setEmail(email);
         user.setLogin(login);
         user.setName(name);
-        user.setBirthday(birthday == null ? null : Constants.SIMPLE_DATE_FORMAT.parse(birthday));
+        user.setBirthday(Objects.isNull(birthday) ? null : Constants.SIMPLE_DATE_FORMAT.parse(birthday));
         return user;
     }
 

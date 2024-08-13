@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Film.
@@ -16,4 +18,5 @@ public class Film {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date releaseDate;
     private Integer duration;
+    private Set<Long> likes = new HashSet<>();
 }
