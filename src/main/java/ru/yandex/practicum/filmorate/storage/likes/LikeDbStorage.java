@@ -30,8 +30,7 @@ public class LikeDbStorage {
 
     public void like(Long id, Long userId) {
         validateFilmAndUserForLike(id, userId);
-        if (isExistsLike(id, userId))
-            throw new ValidationException("Лайк уже стоит.");
+        if (isExistsLike(id, userId)) throw new ValidationException("Лайк уже стоит.");
         String sql = "INSERT INTO likes (film_id, user_id) VALUES(?, ?)";
         jdbcTemplate.update(sql, id, userId);
         log.info("Пользователь {} поставил лайк фильму {}", userId, id);
@@ -39,8 +38,7 @@ public class LikeDbStorage {
 
     public void removeLike(Long id, Long userId) {
         validateFilmAndUserForLike(id, userId);
-        if (!isExistsLike(id, userId))
-            throw new ValidationException("Лайка и так нет.");
+        if (!isExistsLike(id, userId)) throw new ValidationException("Лайка и так нет.");
         String sql = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
         jdbcTemplate.update(sql, id, userId);
         log.info("Пользователь {} убрал лайк у фильма {}", userId, id);
@@ -55,11 +53,7 @@ public class LikeDbStorage {
 
     public Collection<Film> topFilms(int count) {
         if (count < 1) throw new ValidationException("Количество запрашиваемых фильмов не может быть меньше 1.");
-        String sql = "SELECT f.* " +
-                "FROM (SELECT COUNT(*) AS cnt_likes, l.film_id FROM likes l GROUP BY l.film_id) l " +
-                "JOIN films f ON f.id = l.film_id " +
-                "ORDER BY l.cnt_likes DESC " +
-                "LIMIT ?";
+        String sql = "SELECT f.* FROM (SELECT COUNT(*) AS cnt_likes, l.film_id FROM likes l GROUP BY l.film_id) l JOIN films f ON f.id = l.film_id ORDER BY l.cnt_likes DESC LIMIT ?";
         return jdbcTemplate.query(sql, filmMapper::mapRowToFilm, count);
     }
 

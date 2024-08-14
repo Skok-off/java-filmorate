@@ -51,11 +51,7 @@ public class FriendDbStorage {
     public Collection<User> findFriends(Long id) {
         if (Objects.isNull(id)) throw new ValidationException("Не указан id.");
         if (Objects.isNull(userDbStorage.getUser(id))) throw new NotFoundException("Пользователь не найден.");
-        String sql = "SELECT u.* " +
-                "FROM users u " +
-                "JOIN friends f ON f.friend_id = u.id " +
-                "WHERE f.user_id = ? " +
-                "ORDER BY u.id ";
+        String sql = "SELECT u.* " + "FROM users u " + "JOIN friends f ON f.friend_id = u.id WHERE f.user_id = ? ORDER BY u.id ";
         return jdbcTemplate.query(sql, UserMapper::mapRowToUser, id);
     }
 
@@ -65,13 +61,7 @@ public class FriendDbStorage {
             throw new NotFoundException("Пользователь " + userId + " не найден.");
         if (Objects.isNull(userDbStorage.getUser(otherId)))
             throw new NotFoundException("Пользователь " + otherId + " не найден.");
-        String sql = "SELECT u.* " +
-                "FROM users u " +
-                "JOIN friends f1 ON f1.friend_id = u.id " +
-                "JOIN friends f2 ON f2.friend_id = u.id " +
-                "WHERE f1.user_id = ? " +
-                "AND f2.user_id = ? " +
-                "ORDER BY u.id ";
+        String sql = "SELECT u.* FROM users u JOIN friends f1 ON f1.friend_id = u.id JOIN friends f2 ON f2.friend_id = u.id WHERE f1.user_id = ? AND f2.user_id = ? ORDER BY u.id ";
         return jdbcTemplate.query(sql, UserMapper::mapRowToUser, userId, otherId);
     }
 

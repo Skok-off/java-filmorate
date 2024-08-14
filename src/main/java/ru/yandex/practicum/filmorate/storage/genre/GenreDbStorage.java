@@ -46,13 +46,9 @@ public class GenreDbStorage {
     public void addGenresToFilm(Film film) {
         if (Objects.isNull(film.getGenres())) return;
         List<Genre> genres = film.getGenres();
-        Set<Long> genreIds = genres.stream()
-                .map(Genre::getId)
-                .collect(Collectors.toSet());
+        Set<Long> genreIds = genres.stream().map(Genre::getId).collect(Collectors.toSet());
         checkGenres(genreIds);
-        String sql = "DELETE FROM genres_films WHERE film_id = ? AND genre_id NOT IN ("
-                + genreIds.stream().map(id -> "?").collect(Collectors.joining(","))
-                + ")";
+        String sql = "DELETE FROM genres_films WHERE film_id = ? AND genre_id NOT IN (" + genreIds.stream().map(id -> "?").collect(Collectors.joining(",")) + ")";
         jdbcTemplate.update(sql, preparedStatement -> {
             preparedStatement.setLong(1, film.getId());
             int index = 2; // номера параметров для подстановки в запрос
@@ -72,9 +68,7 @@ public class GenreDbStorage {
 
     public void checkGenres(Set<Long> genreIds) {
         if (genreIds.isEmpty()) return;
-        String sql = "SELECT COUNT(*) FROM genres WHERE id IN ("
-                + genreIds.stream().map(id -> "?").collect(Collectors.joining(","))
-                + ")";
+        String sql = "SELECT COUNT(*) FROM genres WHERE id IN (" + genreIds.stream().map(id -> "?").collect(Collectors.joining(",")) + ")";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, genreIds.toArray());
         if (Objects.nonNull(count) && count != genreIds.size()) {
             throw new ValidationException("Некоторых жанров не существует.");

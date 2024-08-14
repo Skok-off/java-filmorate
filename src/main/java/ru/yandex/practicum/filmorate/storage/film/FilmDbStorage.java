@@ -92,7 +92,7 @@ public class FilmDbStorage implements FilmStorage {
         validateUpdateFilm(newFilm);
         Long id = newFilm.getId();
         Mpa mpa = mpaDbStorage.findMpa(newFilm.getMpa().getId());
-        String sql = "UPDATE films SET name = COALESCE(?, name), " + "description = COALESCE(?, description), " + "release = COALESCE(?, release), " + "duration = COALESCE(?, duration), " + "rating_id = COALESCE(?, rating_id) " + " WHERE id = ?";
+        String sql = "UPDATE films SET name = COALESCE(?, name), description = COALESCE(?, description), release = COALESCE(?, release), duration = COALESCE(?, duration), rating_id = COALESCE(?, rating_id) WHERE id = ?";
         jdbcTemplate.update(sql, newFilm.getName(), newFilm.getDescription(), newFilm.getReleaseDate(), newFilm.getDuration(), Objects.isNull(mpa) ? null : mpa.getId(), id);
         genreDbStorage.addGenresToFilm(newFilm);
         log.info("Обновлен фильм с id = " + newFilm.getId());

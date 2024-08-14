@@ -77,18 +77,8 @@ public class UserDbStorage implements UserStorage {
     public User update(User newUser) {
         validateUpdateUser(newUser);
         Long id = newUser.getId();
-        String sql = "UPDATE users " +
-                "SET name = COALESCE(?, name)," +
-                "    login = COALESCE(?, login)," +
-                "    email = ?, " +
-                "    birthday = COALESCE(?, birthday)  " +
-                "WHERE id = ?";
-        jdbcTemplate.update(sql
-                , newUser.getName()
-                , newUser.getLogin()
-                , newUser.getEmail()
-                , newUser.getBirthday()
-                , id);
+        String sql = "UPDATE users SET name = COALESCE(?, name), login = COALESCE(?, login), email = ?, birthday = COALESCE(?, birthday) WHERE id = ?";
+        jdbcTemplate.update(sql, newUser.getName(), newUser.getLogin(), newUser.getEmail(), newUser.getBirthday(), id);
         log.info("Обновлен пользователь с id = " + id);
         return jdbcTemplate.queryForObject("SELECT * FROM users WHERE id = ?", UserMapper::mapRowToUser, id);
     }
