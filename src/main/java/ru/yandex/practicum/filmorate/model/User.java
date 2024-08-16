@@ -3,13 +3,13 @@ package ru.yandex.practicum.filmorate.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Data;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.LocalDate;
 
 @Data
+@Builder(toBuilder = true)
 public class User {
     private Long id;
     @NotBlank
@@ -18,6 +18,5 @@ public class User {
     private String login;
     private String name;
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date birthday;
-    private Set<Long> friends = new HashSet<>();
+    private LocalDate birthday;
 }
