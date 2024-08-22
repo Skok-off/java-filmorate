@@ -67,7 +67,7 @@ public class UserDbStorage implements UserStorage {
         try {
             return jdbcTemplate.queryForObject("SELECT * FROM users WHERE id = ?", UserMapper::mapRowToUser, id);
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException("Пользователь " + id + " не найден");
         }
     }
 

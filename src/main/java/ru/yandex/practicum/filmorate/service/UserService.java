@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friend.FriendDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
@@ -50,5 +51,9 @@ public class UserService {
 
     public Collection<User> findCommonFriends(Long userId, Long otherId) {
         return friendDbstorage.findCommonFriends(userId, otherId);
+    }
+
+    public User getUser(Long id) {
+        return userDbStorage.getUser(id);
     }
 }
