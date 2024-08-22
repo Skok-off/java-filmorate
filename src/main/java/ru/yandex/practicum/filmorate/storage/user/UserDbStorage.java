@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.validation.UserValidator;
@@ -68,5 +69,26 @@ public class UserDbStorage implements UserStorage {
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    @Override
+    public boolean deleteById(Long id) {
+        log.info("Начало удаление пользователя - {}", id);
+        try {
+            boolean userExist = userExists(id);
+            if (userExist) {
+                log.debug("Успешное удаление пользователя");
+                return jdbcTemplate.update("DELETE FROM users WHERE id = ?", id) > 0;
+            } else {
+                throw new NotFoundException("Не содержит данного пользователя " + id);
+            }
+        } catch (RuntimeException e) {
+            throw new NotFoundException("Пользователь " + id + " не найден");
+        }
+    }
+
+    public boolean userExists(Long userId) {
+        String sql = "SELECT EXISTS (SELECT 1 FROM users WHERE id = ?)";
+        return jdbcTemplate.queryForObject(sql, Boolean.class, userId);
     }
 }
