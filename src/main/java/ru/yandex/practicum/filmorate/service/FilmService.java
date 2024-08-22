@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.event.EventDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikeDbStorage;
 
@@ -18,6 +19,8 @@ public class FilmService {
     private final FilmDbStorage filmDbStorage;
     @Autowired
     private final LikeDbStorage likeDbStorage;
+    @Autowired
+    private final EventDbStorage eventDbStorage;
 
     public Collection<Film> findAll() {
         return filmDbStorage.findAll();
@@ -37,6 +40,7 @@ public class FilmService {
 
     public void like(Long id, Long userId) {
         likeDbStorage.like(id, userId);
+        eventDbStorage.add(userId, id, "film", "ADD", "LIKE");
     }
 
     public void removeLike(Long id, Long userId) {
