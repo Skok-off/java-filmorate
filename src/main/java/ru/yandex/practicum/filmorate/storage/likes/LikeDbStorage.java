@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validation.LikeValidator;
 
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -36,10 +37,10 @@ public class LikeDbStorage {
         log.info("Пользователь {} убрал лайк у фильма {}", userId, id);
     }
 
-    public Collection<Film> topFilms(int count) {
+    public List<Film> topFilms(int count) {
         validate.forTopFilms(count);
         String sql = "SELECT f.* FROM (SELECT COUNT(*) AS cnt_likes, l.film_id FROM likes l GROUP BY l.film_id) l JOIN films f ON f.id = l.film_id ORDER BY l.cnt_likes DESC LIMIT ?";
-        return jdbcTemplate.query(sql, filmMapper::mapRowToFilm, count);
+        List<Film> films = jdbcTemplate.query(sql, filmMapper::mapRowToFilm, count);
+        return films;
     }
-
 }

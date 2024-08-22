@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikeDbStorage;
 
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -47,7 +48,7 @@ public class FilmService {
         likeDbStorage.removeLike(id, userId);
     }
 
-    public Collection<Film> topFilms(int count) {
+    public List<Film> topFilms(int count) {
         return likeDbStorage.topFilms(count);
     }
 }

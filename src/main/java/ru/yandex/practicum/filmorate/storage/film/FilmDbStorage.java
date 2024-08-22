@@ -100,7 +100,7 @@ public class FilmDbStorage implements FilmStorage {
             if (Objects.nonNull(film)) film.setGenres((List<Genre>) genreDbStorage.findFilmGenres(film));
             return film;
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException("Фильм " + id + " не найден");
         }
     }
 
