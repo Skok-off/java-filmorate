@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validation.LikeValidator;
 
-import java.util.Collection;
 import java.util.List;
 
 @Slf4j
@@ -39,7 +38,12 @@ public class LikeDbStorage {
 
     public List<Film> topFilms(int count) {
         validate.forTopFilms(count);
-        String sql = "SELECT f.* FROM (SELECT COUNT(*) AS cnt_likes, l.film_id FROM likes l GROUP BY l.film_id) l JOIN films f ON f.id = l.film_id ORDER BY l.cnt_likes DESC LIMIT ?";
+        String sql = "SELECT f.id, f.name, f.description, f.release, f.duration, f.rating_id " +
+                "FROM films f " +
+                "LEFT JOIN likes l ON l.film_id = f.id " +
+                "GROUP BY f.id, f.name, f.description, f.release, f.duration, f.rating_id  " +
+                "ORDER BY COUNT(1) DESC " +
+                "LIMIT ?";
         List<Film> films = jdbcTemplate.query(sql, filmMapper::mapRowToFilm, count);
         return films;
     }
