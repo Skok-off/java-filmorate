@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -84,7 +85,7 @@ public class FilmDbStorage implements FilmStorage {
             if (Objects.nonNull(film)) film.setGenres((List<Genre>) genreDbStorage.findFilmGenres(film));
             return film;
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException("Фильм с id = " + id + " не найен.");
         }
     }
 }
