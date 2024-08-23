@@ -2,14 +2,12 @@ package ru.yandex.practicum.filmorate.validation;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.errors.ErrorCode;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -17,7 +15,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Component
 public class UserValidator {
-    @Autowired
+
     private final JdbcTemplate jdbcTemplate;
 
     public void forCreate(User newUser) {
@@ -26,9 +24,9 @@ public class UserValidator {
         }
         String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, newUser.getEmail());
-        if (Objects.nonNull(count) && count > 0) {
-            throw new ValidationException(ErrorCode.DUPLICATE_EMAIL.getMessage());
-        }
+        //        if (Objects.nonNull(count) && count > 0) {
+        //            throw new ValidationException(ErrorCode.DUPLICATE_EMAIL.getMessage());
+        //        }
         if (Objects.isNull(newUser.getLogin()) || newUser.getLogin().isBlank() || newUser.getLogin().contains(" ")) {
             throw new ValidationException(ErrorCode.NULL_OR_BLANK_LOGIN.getMessage());
         }
@@ -67,4 +65,5 @@ public class UserValidator {
             newUser.setName(newUser.getLogin());
         }
     }
+
 }

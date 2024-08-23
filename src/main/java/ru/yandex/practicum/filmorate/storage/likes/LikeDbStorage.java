@@ -2,24 +2,20 @@ package ru.yandex.practicum.filmorate.storage.likes;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validation.LikeValidator;
-
 import java.util.Collection;
 
 @Slf4j
 @RequiredArgsConstructor
 @Repository
 public class LikeDbStorage {
-    @Autowired
+
     private final JdbcTemplate jdbcTemplate;
-    @Autowired
     private final FilmMapper filmMapper;
-    @Autowired
     private final LikeValidator validate;
 
     public void like(Long id, Long userId) {
