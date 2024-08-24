@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikeDbStorage;
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,6 +33,10 @@ public class FilmService {
         return filmDbStorage.update(newFilm);
     }
 
+    public void deleteById(Long filmId) {
+        filmDbStorage.deleteById(filmId);
+    }
+
     public void like(Long id, Long userId) {
         likeDbStorage.like(id, userId);
     }
@@ -40,7 +45,7 @@ public class FilmService {
         likeDbStorage.removeLike(id, userId);
     }
 
-    public Collection<Film> topFilms(int count) {
+    public List<Film> topFilms(int count) {
         return likeDbStorage.topFilms(count);
     }
 

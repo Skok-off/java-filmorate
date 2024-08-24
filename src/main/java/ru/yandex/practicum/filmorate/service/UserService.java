@@ -35,6 +35,10 @@ public class UserService {
         friendDbstorage.addFriend(userId, friendId);
     }
 
+    public void deleteById(Long id) {
+        userDbStorage.deleteById(id);
+    }
+
     public void deleteFriend(Long userId, Long friendId) {
         friendDbstorage.deleteFriend(userId, friendId);
     }
@@ -45,5 +49,9 @@ public class UserService {
 
     public Collection<User> findCommonFriends(Long userId, Long otherId) {
         return friendDbstorage.findCommonFriends(userId, otherId);
+    }
+
+    public User getUser(Long id) {
+        return userDbStorage.getUser(id);
     }
 }

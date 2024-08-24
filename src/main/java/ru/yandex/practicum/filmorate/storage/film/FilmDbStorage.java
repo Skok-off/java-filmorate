@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -75,6 +76,21 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public boolean deleteById(Long id) {
+        try {
+            boolean filmExists = filmExists(id);
+            if (filmExists) {
+                log.info("Начало удаление фильма - {}", id);
+                return jdbcTemplate.update("DELETE FROM films WHERE id = ?; ", id) > 0;
+            } else {
+                throw new NotFoundException("Не содержит данный фильм " + id);
+            }
+        } catch (RuntimeException e) {
+            throw new NotFoundException("Фильм " + id + " не найден");
+        }
+    }
+
+    @Override
     public Film getFilm(Long id) {
         try {
             Film film = jdbcTemplate.queryForObject("SELECT * FROM films WHERE id = ?", filmMapper::mapRowToFilm, id);
@@ -83,7 +99,7 @@ public class FilmDbStorage implements FilmStorage {
             }
             return film;
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException("Фильм " + id + " не найден");
         }
     }
 
@@ -111,4 +127,9 @@ public class FilmDbStorage implements FilmStorage {
             .collect(Collectors.toList());
     }
 
+    @Override
+    public boolean filmExists(Long filmId) {
+        String sql = "SELECT EXISTS (SELECT 1 FROM films WHERE id = ?)";
+        return jdbcTemplate.queryForObject(sql, Boolean.class, filmId);
+    }
 }
