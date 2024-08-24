@@ -34,37 +34,18 @@ public class LikeDbStorage {
 
     public List<Film> topFilms(Long genreId, Integer year, int count) {
         validate.forTopFilms(count);
-        String sql = "";
-        if ((genreId != null) && (year != null)) {
-            log.info("Вывод популярных фильмов, с фильтрацией по жанру и годам genre_id {} и Year {} ", genreId, year);
-            String sql1var =
+            log.info("Вывод популярных фильмов, с фильтрацией и без по жанру и годам genre_id {} и Year {} ", genreId, year);
+            String sql =
             """
-            SELECT f.*, l.user_id, gf.genre_id, g.name, COUNT(l.user_id) AS cnt_likes
-            FROM films f
-            LEFT JOIN likes l on f.id = l.film_id
-            LEFT JOIN genres_films gf on f.id = gf.film_id
-            LEFT JOIN genres g on gf.genre_id = g.id
-            WHERE (g.id = ? OR ? IS NULL) AND (YEAR(f.release) = ? OR ? IS NULL)
-            GROUP BY f.id, l.user_id, gf.genre_id, g.name
-            ORDER BY cnt_likes DESC
-            LIMIT ?
+                    SELECT f.*, COUNT(l.user_id) AS cnt_likes
+                           FROM films f
+                           LEFT JOIN likes l on f.id = l.film_id
+                           LEFT JOIN genres_films gf on f.id = gf.film_id
+                           WHERE (gf.genre_id = ? OR ? IS NULL) AND (YEAR(f.release) = ? OR ? IS NULL)
+                           GROUP BY f.id
+                           ORDER BY cnt_likes DESC
+                           LIMIT ?
             """;
-            sql = sql1var;
             return jdbcTemplate.query(sql, filmMapper, genreId, genreId, year, year, count);
-        } else {
-            log.info("Вывод популярных фильмов, без фильтрации по жанру и годам genre_id {} и Year {} ", genreId, year);
-            String sql2var =
-            """
-            SELECT f.* FROM (SELECT COUNT(*) AS cnt_likes, l.film_id
-            FROM likes l
-            GROUP BY l.film_id) l
-            JOIN films f ON f.id = l.film_id
-            ORDER BY l.cnt_likes DESC
-            LIMIT ?
-            """;
-            sql = sql2var;
-            return jdbcTemplate.query(sql, filmMapper, count);
-        }
-
     }
 }
