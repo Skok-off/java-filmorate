@@ -37,7 +37,7 @@ public class LikeDbStorage {
             log.info("Вывод популярных фильмов, с фильтрацией и без по жанру и годам genre_id {} и Year {} ", genreId, year);
             String sql =
             """
-                    SELECT f.*, COUNT(l.user_id) AS cnt_likes
+                    SELECT f.*, COUNT(DISTINCT l.user_id) AS cnt_likes
                            FROM films f
                            LEFT JOIN likes l on f.id = l.film_id
                            LEFT JOIN genres_films gf on f.id = gf.film_id
@@ -49,3 +49,4 @@ public class LikeDbStorage {
             return jdbcTemplate.query(sql, filmMapper, genreId, genreId, year, year, count);
     }
 }
+
