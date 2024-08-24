@@ -38,7 +38,7 @@ public class GenreDbStorage {
         }
     }
 
-    public Collection<Genre> findFilmGenres(Film film) {
+    public List<Genre> findFilmGenres(Film film) {
         String sql = "SELECT g.* FROM genres g JOIN genres_films gf ON g.id = gf.genre_id WHERE gf.film_id = ?";
         return jdbcTemplate.query(sql, GenreMapper::mapRowToGenre, film.getId());
     }
