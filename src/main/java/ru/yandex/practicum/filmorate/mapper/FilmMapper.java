@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.mapper;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
@@ -11,9 +11,21 @@ import java.sql.SQLException;
 
 @Component
 @RequiredArgsConstructor
-public final class FilmMapper {
-    @Autowired
+public final class FilmMapper  implements RowMapper<Film> {
+
     private final MpaDbStorage mpaDbStorage;
+
+    @Override
+    public Film mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return Film.builder()
+            .id(rs.getLong("id"))
+            .name(rs.getString("name"))
+            .description(rs.getString("description"))
+            .releaseDate(rs.getDate("release").toLocalDate())
+            .duration(rs.getInt("duration"))
+            .mpa(mpaDbStorage.findMpa(rs.getLong("rating_id")))
+            .build();
+    }
 
     public Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
         return Film.builder()

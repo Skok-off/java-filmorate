@@ -2,24 +2,20 @@ package ru.yandex.practicum.filmorate.storage.likes;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validation.LikeValidator;
-
-import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 @Repository
 public class LikeDbStorage {
-    @Autowired
+
     private final JdbcTemplate jdbcTemplate;
-    @Autowired
     private final FilmMapper filmMapper;
-    @Autowired
     private final LikeValidator validate;
 
     public void like(Long id, Long userId) {
@@ -36,10 +32,15 @@ public class LikeDbStorage {
         log.info("Пользователь {} убрал лайк у фильма {}", userId, id);
     }
 
-    public Collection<Film> topFilms(int count) {
+    public List<Film> topFilms(int count) {
         validate.forTopFilms(count);
-        String sql = "SELECT f.* FROM (SELECT COUNT(*) AS cnt_likes, l.film_id FROM likes l GROUP BY l.film_id) l JOIN films f ON f.id = l.film_id ORDER BY l.cnt_likes DESC LIMIT ?";
-        return jdbcTemplate.query(sql, filmMapper::mapRowToFilm, count);
+        String sql = "SELECT f.id, f.name, f.description, f.release, f.duration, f.rating_id " +
+                "FROM films f " +
+                "LEFT JOIN likes l ON l.film_id = f.id " +
+                "GROUP BY f.id, f.name, f.description, f.release, f.duration, f.rating_id  " +
+                "ORDER BY COUNT(1) DESC " +
+                "LIMIT ?";
+        List<Film> films = jdbcTemplate.query(sql, filmMapper::mapRowToFilm, count);
+        return films;
     }
-
 }

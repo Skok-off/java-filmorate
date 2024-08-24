@@ -21,6 +21,11 @@ public class UserController {
         return userService.findAll();
     }
 
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable Long id) {
+        return userService.getUser(id);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public @ResponseBody User create(@Valid @RequestBody User user) {
@@ -36,6 +41,11 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
         userService.addFriend(id, friendId);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUserById(@PathVariable Long id) {
+        userService.deleteById(id);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
