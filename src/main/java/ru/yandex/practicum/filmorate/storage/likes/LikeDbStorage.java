@@ -6,8 +6,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
 import ru.yandex.practicum.filmorate.validation.LikeValidator;
 
 import java.util.*;
@@ -51,6 +49,5 @@ public class LikeDbStorage {
                     """;
 
         return jdbcTemplate.query(sql, filmMapper, genreId, genreId, year, year, count);
-
     }
 }
