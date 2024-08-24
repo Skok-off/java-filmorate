@@ -126,7 +126,7 @@ public class FilmDbStorage implements FilmStorage {
             .peek(film -> film.setGenres(genreDbStorage.findFilmGenres(film)))
             .collect(Collectors.toList());
     }
-  
+
     @Override
     public boolean filmExists(Long filmId) {
         String sql = "SELECT EXISTS (SELECT 1 FROM films WHERE id = ?)";
