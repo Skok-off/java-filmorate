@@ -22,11 +22,6 @@ public class UserValidator {
         if (Objects.isNull(newUser.getEmail()) || newUser.getEmail().isBlank()) {
             throw new ValidationException(ErrorCode.NULL_OR_BLANK_EMAIL.getMessage());
         }
-        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, newUser.getEmail());
-        //        if (Objects.nonNull(count) && count > 0) {
-        //            throw new ValidationException(ErrorCode.DUPLICATE_EMAIL.getMessage());
-        //        }
         if (Objects.isNull(newUser.getLogin()) || newUser.getLogin().isBlank() || newUser.getLogin().contains(" ")) {
             throw new ValidationException(ErrorCode.NULL_OR_BLANK_LOGIN.getMessage());
         }
@@ -48,11 +43,6 @@ public class UserValidator {
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
         if (Objects.nonNull(count) && count == 0) {
             throw new NotFoundException("Пользователь с id = " + id + " не найден");
-        }
-        sql = "SELECT COUNT(*) FROM users WHERE id != ? AND email = ?";
-        count = jdbcTemplate.queryForObject(sql, Integer.class, id, newUser.getEmail());
-        if (Objects.nonNull(count) && count > 0) {
-            throw new ValidationException(ErrorCode.DUPLICATE_EMAIL.getMessage());
         }
         if (Objects.nonNull(newUser.getLogin()) && (newUser.getLogin().isBlank() || newUser.getLogin().contains(" "))) {
             throw new ValidationException(ErrorCode.NULL_OR_BLANK_LOGIN.getMessage());
