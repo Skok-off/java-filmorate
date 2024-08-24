@@ -45,8 +45,8 @@ public class FilmService {
         likeDbStorage.removeLike(id, userId);
     }
 
-    public List<Film> topFilms(int count) {
-        return likeDbStorage.topFilms(count);
+    public List<Film> topFilms(Long genreId, Integer year, int count) {
+        return likeDbStorage.topFilms(genreId, year, count);
     }
 
     public Collection<Film> getCommonPopularFilm(Long userId, Long friendId) {

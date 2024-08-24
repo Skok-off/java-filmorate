@@ -17,7 +17,6 @@ import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
 import ru.yandex.practicum.filmorate.validation.FilmValidator;
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -34,9 +33,9 @@ public class FilmDbStorage implements FilmStorage {
     private final FilmValidator validate;
 
     @Override
-    public Collection<Film> findAll() {
+    public List<Film> findAll() {
         log.info("Запрошен список фильмов");
-        return jdbcTemplate.query("SELECT * FROM films ORDER BY id", filmMapper::mapRowToFilm);
+        return jdbcTemplate.query("SELECT * FROM films ORDER BY id", filmMapper);
     }
 
     @Override

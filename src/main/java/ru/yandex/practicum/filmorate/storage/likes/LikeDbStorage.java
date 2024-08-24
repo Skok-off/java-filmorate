@@ -32,15 +32,21 @@ public class LikeDbStorage {
         log.info("Пользователь {} убрал лайк у фильма {}", userId, id);
     }
 
-    public List<Film> topFilms(int count) {
+    public List<Film> topFilms(Long genreId, Integer year, int count) {
         validate.forTopFilms(count);
-        String sql = "SELECT f.id, f.name, f.description, f.release, f.duration, f.rating_id " +
-                "FROM films f " +
-                "LEFT JOIN likes l ON l.film_id = f.id " +
-                "GROUP BY f.id, f.name, f.description, f.release, f.duration, f.rating_id  " +
-                "ORDER BY COUNT(1) DESC " +
-                "LIMIT ?";
-        List<Film> films = jdbcTemplate.query(sql, filmMapper::mapRowToFilm, count);
-        return films;
+            log.info("Вывод популярных фильмов, с фильтрацией и без по жанру и годам genre_id {} и Year {} ", genreId, year);
+            String sql =
+            """
+                    SELECT f.*, COUNT(DISTINCT l.user_id) AS cnt_likes
+                           FROM films f
+                           LEFT JOIN likes l on f.id = l.film_id
+                           LEFT JOIN genres_films gf on f.id = gf.film_id
+                           WHERE (gf.genre_id = ? OR ? IS NULL) AND (YEAR(f.release) = ? OR ? IS NULL)
+                           GROUP BY f.id
+                           ORDER BY cnt_likes DESC
+                           LIMIT ?
+            """;
+            return jdbcTemplate.query(sql, filmMapper, genreId, genreId, year, year, count);
     }
 }
+
