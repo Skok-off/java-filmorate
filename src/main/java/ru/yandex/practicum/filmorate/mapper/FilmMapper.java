@@ -18,13 +18,13 @@ public final class FilmMapper  implements RowMapper<Film> {
     @Override
     public Film mapRow(ResultSet rs, int rowNum) throws SQLException {
         return Film.builder()
-                .id(rs.getLong("id"))
-                .name(rs.getString("name"))
-                .description(rs.getString("description"))
-                .releaseDate(rs.getDate("release").toLocalDate())
-                .duration(rs.getInt("duration"))
-                .mpa(mpaDbStorage.findMpa(rs.getLong("rating_id")))
-                .build();
+            .id(rs.getLong("id"))
+            .name(rs.getString("name"))
+            .description(rs.getString("description"))
+            .releaseDate(rs.getDate("release").toLocalDate())
+            .duration(rs.getInt("duration"))
+            .mpa(mpaDbStorage.findMpa(rs.getLong("rating_id")))
+            .build();
     }
 
     public Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {

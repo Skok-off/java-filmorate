@@ -7,13 +7,13 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validation.LikeValidator;
-
-import java.util.*;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 @Repository
 public class LikeDbStorage {
+
     private final JdbcTemplate jdbcTemplate;
     private final FilmMapper filmMapper;
     private final LikeValidator validate;

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikeDbStorage;
-
 import java.util.Collection;
 import java.util.List;
 
@@ -15,9 +14,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class FilmService {
-    @Autowired
+
     private final FilmDbStorage filmDbStorage;
-    @Autowired
     private final LikeDbStorage likeDbStorage;
 
     public Collection<Film> findAll() {
@@ -36,6 +34,10 @@ public class FilmService {
         return filmDbStorage.update(newFilm);
     }
 
+    public void deleteById(Long filmId) {
+        filmDbStorage.deleteById(filmId);
+    }
+
     public void like(Long id, Long userId) {
         likeDbStorage.like(id, userId);
     }
@@ -47,4 +49,9 @@ public class FilmService {
     public List<Film> topFilms(Long genreId, Integer year, int count) {
         return likeDbStorage.topFilms(genreId, year, count);
     }
+
+    public Collection<Film> getCommonPopularFilm(Long userId, Long friendId) {
+        return filmDbStorage.getCommonPopularFilm(userId, friendId);
+    }
+
 }
