@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
@@ -16,11 +15,8 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @Service
 public class UserService {
-    @Autowired
     private final UserDbStorage userDbStorage;
-    @Autowired
     private final FriendDbStorage friendDbstorage;
-    @Autowired
     private final EventDbStorage eventDbStorage;
 
     public Collection<User> findAll() {
@@ -37,6 +33,7 @@ public class UserService {
 
     public void addFriend(Long userId, Long friendId) {
         friendDbstorage.addFriend(userId, friendId);
+        eventDbStorage.add(userId, friendId, "users", "ADD", "FRIEND");
     }
 
     public void deleteById(Long id) {
@@ -45,6 +42,7 @@ public class UserService {
 
     public void deleteFriend(Long userId, Long friendId) {
         friendDbstorage.deleteFriend(userId, friendId);
+        eventDbStorage.add(userId, friendId, "users", "REMOVE", "FRIEND");
     }
 
     public Collection<User> findFriends(Long id) {

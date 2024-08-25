@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
@@ -11,6 +10,7 @@ import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
 
+@SuppressWarnings("unused")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users")
@@ -50,9 +50,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public ResponseEntity<String> deleteFriend(@PathVariable Long id, @PathVariable Long friendId) {
+    public void deleteFriend(@PathVariable Long id, @PathVariable Long friendId) {
         userService.deleteFriend(id, friendId);
-        return ResponseEntity.ok("Пользователи " + id + " и " + friendId + " больше не друзья.");
     }
 
     @GetMapping("/{id}/friends")

@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.event.EventDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikeDbStorage;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -14,10 +15,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class FilmService {
-
     private final FilmDbStorage filmDbStorage;
     private final LikeDbStorage likeDbStorage;
-    @Autowired
     private final EventDbStorage eventDbStorage;
 
     public Collection<Film> findAll() {
@@ -42,11 +41,12 @@ public class FilmService {
 
     public void like(Long id, Long userId) {
         likeDbStorage.like(id, userId);
-        eventDbStorage.add(userId, id, "film", "ADD", "LIKE");
+        eventDbStorage.add(userId, id, "films", "ADD", "LIKE");
     }
 
     public void removeLike(Long id, Long userId) {
         likeDbStorage.removeLike(id, userId);
+        eventDbStorage.add(userId, id, "films", "REMOVE", "LIKE");
     }
 
     public List<Film> topFilms(Long genreId, Integer year, int count) {
