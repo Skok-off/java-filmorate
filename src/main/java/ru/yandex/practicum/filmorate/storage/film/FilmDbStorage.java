@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.storage.director.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
 import ru.yandex.practicum.filmorate.validation.FilmValidator;
-
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.List;
@@ -168,11 +167,13 @@ public class FilmDbStorage implements FilmStorage {
             case "likes":
                 sql = """
                     SELECT f.*, COUNT(l.user_id) likes_count
-                    FROM films fJOIN likes l
+                    FROM films f
+                    left JOIN likes l
                     ON f.id = l.film_id
                     WHERE f.id IN (SELECT film_id FROM directors_films WHERE director_id = ?)
-                    GROUP BY f.id ORDER BY COUNT(likes_count)
+                    GROUP BY f.id ORDER BY likes_count
                     """;
+                break;
             case "year":
                 sql = """
                     SELECT *
@@ -180,7 +181,7 @@ public class FilmDbStorage implements FilmStorage {
                     WHERE id IN (SELECT film_id FROM directors_films WHERE director_id = ?)
                     ORDER BY YEAR(release)
                     """;
-
+                break;
         }
         List<Film> sortedFilms = jdbcTemplate.query(sql, filmMapper, directorId);
 
