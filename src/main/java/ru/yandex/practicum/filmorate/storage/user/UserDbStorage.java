@@ -88,4 +88,5 @@ public class UserDbStorage implements UserStorage {
         String sql = "SELECT EXISTS (SELECT 1 FROM users WHERE id = ?)";
         return jdbcTemplate.queryForObject(sql, Boolean.class, userId);
     }
+
 }

@@ -6,13 +6,13 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.event.EventDbStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewDbStorage;
-
 import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class ReviewService {
+
     private final ReviewDbStorage reviewDbStorage;
     private final EventDbStorage eventDbStorage;
 
@@ -57,4 +57,5 @@ public class ReviewService {
     public void deleteDislike(Long id, Long userId) {
         reviewDbStorage.deleteRating(userId, id, -1);
     }
+
 }

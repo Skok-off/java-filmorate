@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.MpaService;
-
 import java.util.Collection;
 
 @SuppressWarnings("unused")
@@ -15,6 +14,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @RequestMapping("/mpa")
 public class MpaController {
+
     private final MpaService mpaService;
 
     @GetMapping
@@ -26,4 +26,5 @@ public class MpaController {
     public Mpa findMpa(@PathVariable Long id) {
         return mpaService.findMpa(id);
     }
+
 }

@@ -38,7 +38,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> findAll() {
         log.info("Запрошен список фильмов");
-        return jdbcTemplate.query("SELECT * FROM films ORDER BY id", filmMapper);
+        return jdbcTemplate.query("SELECT * FROM films", filmMapper);
     }
 
     @Override
@@ -58,14 +58,17 @@ public class FilmDbStorage implements FilmStorage {
         Long id = Objects.requireNonNull(keyHolder.getKey()).longValue();
         Mpa mpa = mpaDbStorage.findMpa(newFilm.getMpa().getId());
         Film film = newFilm.toBuilder().id(id).mpa(mpa).build();
+
         if (!isEmpty(newFilm.getGenres())) {
             genreDbStorage.addGenresToFilm(film);
         }
+
         if (!isEmpty(newFilm.getDirectors())) {
             directorDbStorage.addDirectorsToFilm(film);
         }
         log.info("Добавлен фильм \"" + film.getName() + "\" с id = " + id);
-        return film;
+
+        return getFilm(film.getId());
     }
 
     @Override
@@ -73,14 +76,23 @@ public class FilmDbStorage implements FilmStorage {
         validate.forUpdate(newFilm);
         Long id = newFilm.getId();
         Mpa mpa = mpaDbStorage.findMpa(newFilm.getMpa().getId());
-        String sql =
-                "UPDATE films SET name = COALESCE(?, name), description = COALESCE(?, description), release = COALESCE(?, release), duration = COALESCE(?, duration), rating_id = COALESCE(?, rating_id) WHERE id = ?";
+        String sql = """
+                UPDATE films
+                            SET name        = COALESCE(?, name),
+                                description = COALESCE(?, description),
+                                release     = COALESCE(?, release),
+                                duration    = COALESCE(?, duration),
+                                rating_id   = COALESCE(?, rating_id)
+                            WHERE id = ?
+            """;
         jdbcTemplate.update(sql, newFilm.getName(), newFilm.getDescription(), newFilm.getReleaseDate(), newFilm.getDuration(),
-                Objects.isNull(mpa) ? null : mpa.getId(), id);
+            Objects.isNull(mpa) ? null : mpa.getId(), id);
+
         genreDbStorage.addGenresToFilm(newFilm);
         directorDbStorage.addDirectorsToFilm(newFilm);
         log.info("Обновлен фильм с id = " + newFilm.getId());
-        return jdbcTemplate.queryForObject("SELECT * FROM films WHERE id = ?", filmMapper::mapRowToFilm, id);
+
+        return jdbcTemplate.queryForObject("SELECT * FROM films WHERE id = ?", filmMapper, id);
     }
 
     @Override
@@ -103,7 +115,7 @@ public class FilmDbStorage implements FilmStorage {
         try {
             Film film = jdbcTemplate.queryForObject("SELECT * FROM films WHERE id = ?", filmMapper::mapRowToFilm, id);
             if (Objects.nonNull(film)) {
-                film.setGenres((List<Genre>) genreDbStorage.findFilmGenres(film));
+                film.setGenres(genreDbStorage.findFilmGenres(film));
                 film.setDirectors(directorDbStorage.findFilmDirectors(id));
                 film.setGenres(genreDbStorage.findFilmGenres(film));
             }
@@ -155,13 +167,11 @@ public class FilmDbStorage implements FilmStorage {
         switch (sortBy.toLowerCase()) {
             case "likes":
                 sql = """
-                    SELECT f.*, COUNT(l.user_id) likes_count 
-                    FROM films f
-                    JOIN likes l 
+                    SELECT f.*, COUNT(l.user_id) likes_count
+                    FROM films fJOIN likes l
                     ON f.id = l.film_id
                     WHERE f.id IN (SELECT film_id FROM directors_films WHERE director_id = ?)
-                    GROUP BY f.id
-                    ORDER BY COUNT(likes_count)
+                    GROUP BY f.id ORDER BY COUNT(likes_count)
                     """;
             case "year":
                 sql = """

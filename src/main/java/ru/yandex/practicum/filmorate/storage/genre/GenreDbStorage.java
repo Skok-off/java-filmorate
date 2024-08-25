@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -60,7 +61,7 @@ public class GenreDbStorage {
                 preparedStatement.setLong(index++, id);
             }
         });
-        if (!genreIds.isEmpty()) {
+        if (!CollectionUtils.isEmpty(genreIds)) {
             sql = "INSERT INTO genres_films (film_id, genre_id) VALUES (?, ?)";
             jdbcTemplate.batchUpdate(sql, genreIds, genreIds.size(), (preparedStatement, id) -> {
                 preparedStatement.setLong(1, film.getId());

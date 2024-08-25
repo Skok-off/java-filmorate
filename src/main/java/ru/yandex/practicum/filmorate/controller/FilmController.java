@@ -22,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/films")
 public class FilmController {
+
     private final FilmService filmService;
 
     @GetMapping
@@ -62,8 +63,8 @@ public class FilmController {
 
     @GetMapping("/popular")
     public List<Film> topFilms(@RequestParam(defaultValue = "10") int count,
-                                     @RequestParam(value = "genreId", required = false) Long genreId,
-                                     @RequestParam(value = "year", required = false) Integer year) {
+                               @RequestParam(value = "genreId", required = false) Long genreId,
+                               @RequestParam(value = "year", required = false) Integer year) {
         return filmService.topFilms(genreId, year, count);
     }
 
@@ -77,4 +78,5 @@ public class FilmController {
                                                                  @RequestParam String sortBy) {
         return filmService.getFilmsListByDirector(directorId, sortBy);
     }
+
 }

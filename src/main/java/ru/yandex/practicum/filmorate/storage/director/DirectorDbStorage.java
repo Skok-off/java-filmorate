@@ -94,7 +94,7 @@ public class DirectorDbStorage {
         jdbcTemplate.update(sql, filmId);
 
         List<Director> directors = film.getDirectors();
-        if (!isEmpty(film.getDirectors())) {
+        if (isEmpty(film.getDirectors())) {
             return;
         }
 
@@ -111,7 +111,7 @@ public class DirectorDbStorage {
     }
 
     public void checkDirectors(Set<Long> directorsIds) {
-        if (!isEmpty(directorsIds)) {
+        if (isEmpty(directorsIds)) {
             throw new NotFoundException("У переданных режиссеров не указаны id");
         }
 

@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.GenreService;
-
 import java.util.Collection;
 
 @SuppressWarnings("unused")
@@ -15,6 +14,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @RequestMapping("/genres")
 public class GenreController {
+
     private final GenreService genreService;
 
     @GetMapping
@@ -26,4 +26,5 @@ public class GenreController {
     public Genre findGenre(@PathVariable Long id) {
         return genreService.findGenre(id);
     }
+
 }
