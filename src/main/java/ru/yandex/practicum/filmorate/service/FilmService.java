@@ -57,4 +57,8 @@ public class FilmService {
         return filmDbStorage.getCommonPopularFilm(userId, friendId);
     }
 
+    public List<Film> getFilmsListByDirector(Long directorId, String sortBy) {
+        return filmDbStorage.getFilmsListByDirector(directorId, sortBy);
+    }
+
 }
