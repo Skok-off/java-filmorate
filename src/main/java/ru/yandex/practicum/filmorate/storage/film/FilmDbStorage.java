@@ -10,11 +10,11 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
 import ru.yandex.practicum.filmorate.validation.FilmValidator;
+
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.List;
@@ -44,7 +44,7 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "INSERT INTO films (name, description, release, duration, rating_id) VALUES(?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql, new String[] {"id"});
+            PreparedStatement preparedStatement = connection.prepareStatement(sql, new String[]{"id"});
             preparedStatement.setString(1, newFilm.getName());
             preparedStatement.setString(2, newFilm.getDescription());
             preparedStatement.setDate(3, Date.valueOf(newFilm.getReleaseDate()));
@@ -66,9 +66,9 @@ public class FilmDbStorage implements FilmStorage {
         Long id = newFilm.getId();
         Mpa mpa = mpaDbStorage.findMpa(newFilm.getMpa().getId());
         String sql =
-            "UPDATE films SET name = COALESCE(?, name), description = COALESCE(?, description), release = COALESCE(?, release), duration = COALESCE(?, duration), rating_id = COALESCE(?, rating_id) WHERE id = ?";
+                "UPDATE films SET name = COALESCE(?, name), description = COALESCE(?, description), release = COALESCE(?, release), duration = COALESCE(?, duration), rating_id = COALESCE(?, rating_id) WHERE id = ?";
         jdbcTemplate.update(sql, newFilm.getName(), newFilm.getDescription(), newFilm.getReleaseDate(), newFilm.getDuration(),
-            Objects.isNull(mpa) ? null : mpa.getId(), id);
+                Objects.isNull(mpa) ? null : mpa.getId(), id);
         genreDbStorage.addGenresToFilm(newFilm);
         log.info("Обновлен фильм с id = " + newFilm.getId());
         return jdbcTemplate.queryForObject("SELECT * FROM films WHERE id = ?", filmMapper::mapRowToFilm, id);
@@ -94,7 +94,7 @@ public class FilmDbStorage implements FilmStorage {
         try {
             Film film = jdbcTemplate.queryForObject("SELECT * FROM films WHERE id = ?", filmMapper::mapRowToFilm, id);
             if (Objects.nonNull(film)) {
-                film.setGenres((List<Genre>) genreDbStorage.findFilmGenres(film));
+                film.setGenres(genreDbStorage.findFilmGenres(film));
             }
             return film;
         } catch (EmptyResultDataAccessException e) {
@@ -104,31 +104,29 @@ public class FilmDbStorage implements FilmStorage {
 
     public List<Film> getCommonPopularFilm(Long userId, Long friendId) {
         String findCommonPopularFilms = """
-            SELECT f.*, r.name as rName, COUNT(fl.user_id) AS like_count
-                                     FROM films f
-                                              JOIN likes fl ON f.ID = fl.film_id
-                                              JOIN ratings r on r.ID = f.rating_id
-                                     WHERE fl.film_id IN (
-                                         SELECT fl1.film_id
-                                         FROM likes fl1
-                                                  JOIN likes fl2 ON fl1.film_id = fl2.film_id
-                                         WHERE fl1.user_id = ?
-                                           AND fl2.user_id = ?
-                                         )
-                                     GROUP BY f.ID
-                                     ORDER BY like_count DESC""";
+                SELECT f.*, r.name as rName, COUNT(fl.user_id) AS like_count
+                                         FROM films f
+                                                  JOIN likes fl ON f.ID = fl.film_id
+                                                  JOIN ratings r on r.ID = f.rating_id
+                                         WHERE fl.film_id IN (
+                                             SELECT fl1.film_id
+                                             FROM likes fl1
+                                                      JOIN likes fl2 ON fl1.film_id = fl2.film_id
+                                             WHERE fl1.user_id = ?
+                                               AND fl2.user_id = ?
+                                             )
+                                         GROUP BY f.ID
+                                         ORDER BY like_count DESC""";
         log.info("Поиск общих популярных фильмов пользователей с id {} и {} ", userId, friendId);
-
         List<Film> commonPopularFilms = jdbcTemplate.query(findCommonPopularFilms, filmMapper, userId, friendId);
-
         return commonPopularFilms.stream()
-            .peek(film -> film.setGenres(genreDbStorage.findFilmGenres(film)))
-            .collect(Collectors.toList());
+                .peek(film -> film.setGenres(genreDbStorage.findFilmGenres(film)))
+                .collect(Collectors.toList());
     }
 
     @Override
     public boolean filmExists(Long filmId) {
         String sql = "SELECT EXISTS (SELECT 1 FROM films WHERE id = ?)";
-        return jdbcTemplate.queryForObject(sql, Boolean.class, filmId);
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, filmId));
     }
 }

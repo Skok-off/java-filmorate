@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage.friend;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
@@ -15,10 +14,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @Repository
 public class FriendDbStorage {
-
-    @Autowired
     private final JdbcTemplate jdbcTemplate;
-    @Autowired
     private final FriendValidator validate;
 
     public void addFriend(Long userId, Long friendId) {
