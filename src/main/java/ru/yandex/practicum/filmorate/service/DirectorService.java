@@ -34,20 +34,4 @@ public class DirectorService {
         directorDbStorage.deleteById(id);
     }
 
-    //    public void like(Long id, Long userId) {
-    //        likeDbStorage.like(id, userId);
-    //    }
-    //
-    //    public void removeLike(Long id, Long userId) {
-    //        likeDbStorage.removeLike(id, userId);
-    //    }
-    //
-    //    public List<Film> topFilms(Long genreId, Integer year, int count) {
-    //        return likeDbStorage.topFilms(genreId, year, count);
-    //    }
-    //
-    //    public Collection<Film> getCommonPopularFilm(Long userId, Long friendId) {
-    //        return filmDbStorage.getCommonPopularFilm(userId, friendId);
-    //    }
-
 }

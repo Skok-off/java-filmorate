@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage.genre;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -11,6 +10,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -22,18 +22,18 @@ import java.util.stream.Collectors;
 @Repository
 public class GenreDbStorage {
 
-    @Autowired
     private final JdbcTemplate jdbcTemplate;
+    private final GenreMapper mapper;
 
     public Collection<Genre> findAll() {
         String sql = "SELECT * FROM genres ORDER BY id";
-        return jdbcTemplate.query(sql, GenreMapper::mapRowToGenre);
+        return jdbcTemplate.query(sql, mapper);
     }
 
     public Genre findGenre(Long id) {
         String sql = "SELECT * FROM genres WHERE id = ?";
         try {
-            return jdbcTemplate.queryForObject(sql, GenreMapper::mapRowToGenre, id);
+            return jdbcTemplate.queryForObject(sql, mapper, id);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -41,7 +41,7 @@ public class GenreDbStorage {
 
     public List<Genre> findFilmGenres(Film film) {
         String sql = "SELECT g.* FROM genres g JOIN genres_films gf ON g.id = gf.genre_id WHERE gf.film_id = ?";
-        return jdbcTemplate.query(sql, GenreMapper::mapRowToGenre, film.getId());
+        return jdbcTemplate.query(sql, mapper, film.getId());
     }
 
     public void addGenresToFilm(Film film) {
@@ -52,8 +52,8 @@ public class GenreDbStorage {
         Set<Long> genreIds = genres.stream().map(Genre::getId).collect(Collectors.toSet());
         checkGenres(genreIds);
         String sql =
-            "DELETE FROM genres_films WHERE film_id = ? AND genre_id NOT IN (" + genreIds.stream().map(id -> "?").collect(Collectors.joining(",")) +
-                ")";
+                "DELETE FROM genres_films WHERE film_id = ? AND genre_id NOT IN (" + genreIds.stream().map(id -> "?").collect(Collectors.joining(",")) +
+                        ")";
         jdbcTemplate.update(sql, preparedStatement -> {
             preparedStatement.setLong(1, film.getId());
             int index = 2; // номера параметров для подстановки в запрос
@@ -62,13 +62,13 @@ public class GenreDbStorage {
             }
         });
         if (!CollectionUtils.isEmpty(genreIds)) {
-            sql = "INSERT INTO genres_films (film_id, genre_id) VALUES (?, ?)";
+            sql = "MERGE INTO genres_films (film_id, genre_id) KEY (film_id, genre_id) VALUES (?, ?)";
             jdbcTemplate.batchUpdate(sql, genreIds, genreIds.size(), (preparedStatement, id) -> {
                 preparedStatement.setLong(1, film.getId());
                 preparedStatement.setLong(2, id);
             });
         }
-        film.setGenres((List<Genre>) findFilmGenres(film));
+        film.setGenres(findFilmGenres(film));
     }
 
     public void checkGenres(Set<Long> genreIds) {

@@ -32,7 +32,7 @@ public class MpaDbStorage {
     }
 
     public Collection<Mpa> findAll() {
-        return jdbcTemplate.query("SELECT * FROM ratings ORDER BY id", MpaMapper::mapRowToMpa);
+        return jdbcTemplate.query("SELECT * FROM ratings ORDER BY id", mapper);
     }
 
 }

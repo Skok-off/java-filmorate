@@ -20,7 +20,7 @@ public class LikeDbStorage {
 
     public void like(Long id, Long userId) {
         validate.forLike(id, userId);
-        String sql = "INSERT INTO likes (film_id, user_id) VALUES(?, ?)";
+        String sql = "MERGE INTO likes (film_id, user_id) KEY (film_id, user_id) VALUES(?, ?)";
         jdbcTemplate.update(sql, id, userId);
         log.info("Пользователь {} поставил лайк фильму {}", userId, id);
     }
