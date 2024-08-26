@@ -8,9 +8,12 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.validation.UserValidator;
+
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.Collection;
@@ -23,6 +26,7 @@ public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
     private final UserValidator validate;
+    private final FilmMapper filmMapper;
 
     @Override
     public Collection<User> findAll() {
@@ -36,7 +40,7 @@ public class UserDbStorage implements UserStorage {
         String sql = "INSERT INTO users (name, login, email, birthday) VALUES(?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql, new String[] {"id"});
+            PreparedStatement preparedStatement = connection.prepareStatement(sql, new String[]{"id"});
             preparedStatement.setString(1, newUser.getName());
             preparedStatement.setString(2, newUser.getLogin());
             preparedStatement.setString(3, newUser.getEmail());
@@ -53,7 +57,7 @@ public class UserDbStorage implements UserStorage {
         validate.forUpdate(newUser);
         Long id = newUser.getId();
         String sql =
-            "UPDATE users SET name = COALESCE(?, name), login = COALESCE(?, login), email = ?, birthday = COALESCE(?, birthday) WHERE id = ?";
+                "UPDATE users SET name = COALESCE(?, name), login = COALESCE(?, login), email = ?, birthday = COALESCE(?, birthday) WHERE id = ?";
         jdbcTemplate.update(sql, newUser.getName(), newUser.getLogin(), newUser.getEmail(), newUser.getBirthday(), id);
         log.info("Обновлен пользователь с id = " + id);
         return jdbcTemplate.queryForObject("SELECT * FROM users WHERE id = ?", UserMapper::mapRowToUser, id);
@@ -89,4 +93,23 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.queryForObject(sql, Boolean.class, userId);
     }
 
+    public Collection<Film> getRecommendations(Long id) {
+        String sql = "WITH similar_users AS ( " +
+                "    SELECT ul2.user_id, " +
+                "        COUNT(*) AS common_likes " +
+                "    FROM likes ul1 " +
+                "    JOIN likes ul2 ON ul1.film_id = ul2.film_id " +
+                "    WHERE ul1.user_id = ? " +
+                "        AND ul2.user_id != ? " +
+                "    GROUP BY ul2.user_id " +
+                "    ORDER BY common_likes DESC " +
+                "    LIMIT 1 ) " +
+                "SELECT f.id, f.name, f.description, f.release, f.duration, f.rating_id " +
+                "FROM films f " +
+                "JOIN likes l ON f.id = l.film_id " +
+                "JOIN similar_users su ON l.user_id = su.user_id " +
+                "WHERE f.id NOT IN (SELECT film_id FROM likes WHERE user_id = ?);";
+
+        return jdbcTemplate.query(sql, filmMapper, id, id, id);
+    }
 }
