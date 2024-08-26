@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -18,7 +17,6 @@ import ru.yandex.practicum.filmorate.validation.UserValidator;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -42,7 +40,7 @@ public class UserDbStorage implements UserStorage {
         String sql = "INSERT INTO users (name, login, email, birthday) VALUES(?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql, new String[] {"id"});
+            PreparedStatement preparedStatement = connection.prepareStatement(sql, new String[]{"id"});
             preparedStatement.setString(1, newUser.getName());
             preparedStatement.setString(2, newUser.getLogin());
             preparedStatement.setString(3, newUser.getEmail());
@@ -59,7 +57,7 @@ public class UserDbStorage implements UserStorage {
         validate.forUpdate(newUser);
         Long id = newUser.getId();
         String sql =
-            "UPDATE users SET name = COALESCE(?, name), login = COALESCE(?, login), email = ?, birthday = COALESCE(?, birthday) WHERE id = ?";
+                "UPDATE users SET name = COALESCE(?, name), login = COALESCE(?, login), email = ?, birthday = COALESCE(?, birthday) WHERE id = ?";
         jdbcTemplate.update(sql, newUser.getName(), newUser.getLogin(), newUser.getEmail(), newUser.getBirthday(), id);
         log.info("Обновлен пользователь с id = " + id);
         return jdbcTemplate.queryForObject("SELECT * FROM users WHERE id = ?", UserMapper::mapRowToUser, id);
