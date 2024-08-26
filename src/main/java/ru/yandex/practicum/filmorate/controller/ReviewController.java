@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.ReviewService;
-
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -22,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/reviews")
 public class ReviewController {
+
     private final ReviewService reviewService;
 
     @PostMapping
@@ -70,4 +70,5 @@ public class ReviewController {
     public void deleteDislike(@PathVariable Long id, @PathVariable Long userId) {
         reviewService.deleteDislike(id, userId);
     }
+
 }

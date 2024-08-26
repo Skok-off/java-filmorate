@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
-
 import java.util.Collection;
 import java.util.Objects;
 
@@ -15,6 +14,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Service
 public class GenreService {
+
     @Autowired
     private final GenreDbStorage genreDbStorage;
 
@@ -24,7 +24,10 @@ public class GenreService {
 
     public Genre findGenre(Long id) {
         Genre genre = genreDbStorage.findGenre(id);
-        if (Objects.isNull(genre)) throw new NotFoundException("Жанр с id = " + id + " не найден.");
+        if (Objects.isNull(genre)) {
+            throw new NotFoundException("Жанр с id = " + id + " не найден.");
+        }
         return genre;
     }
+
 }
