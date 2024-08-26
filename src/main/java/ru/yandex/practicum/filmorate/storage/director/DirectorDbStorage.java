@@ -14,9 +14,7 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validation.DirectorValidator;
 import java.sql.PreparedStatement;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -93,12 +91,11 @@ public class DirectorDbStorage {
         String sql = "DELETE FROM directors_films WHERE film_id = ?";
         jdbcTemplate.update(sql, filmId);
 
-        List<Director> directors = film.getDirectors();
-        if (isEmpty(film.getDirectors())) {
+        Set<Long> directorsIds = film.getDirectors().stream().map(Director::getId).collect(Collectors.toSet());
+        if (isEmpty(directorsIds)) {
             return;
         }
 
-        Set<Long> directorsIds = directors.stream().map(Director::getId).collect(Collectors.toSet());
         checkDirectors(directorsIds);
 
         sql = "INSERT INTO directors_films (film_id, director_id) VALUES (?, ?)";

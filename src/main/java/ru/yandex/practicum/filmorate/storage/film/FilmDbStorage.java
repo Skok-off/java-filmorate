@@ -171,7 +171,7 @@ public class FilmDbStorage implements FilmStorage {
                     left JOIN likes l
                     ON f.id = l.film_id
                     WHERE f.id IN (SELECT film_id FROM directors_films WHERE director_id = ?)
-                    GROUP BY f.id ORDER BY likes_count
+                    GROUP BY f.id ORDER BY likes_count DESC 
                     """;
                 break;
             case "year":
@@ -179,7 +179,7 @@ public class FilmDbStorage implements FilmStorage {
                     SELECT *
                     FROM films
                     WHERE id IN (SELECT film_id FROM directors_films WHERE director_id = ?)
-                    ORDER BY YEAR(release)
+                    ORDER BY YEAR(release) DESC
                     """;
                 break;
         }
