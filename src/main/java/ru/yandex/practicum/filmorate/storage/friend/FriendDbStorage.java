@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.validation.FriendValidator;
+
 import java.util.Collection;
 
 @Slf4j
@@ -15,6 +16,7 @@ import java.util.Collection;
 public class FriendDbStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FriendValidator validate;
+    private final UserMapper userMapper;
 
     public void addFriend(Long userId, Long friendId) {
         validate.forAdd(userId, friendId);
@@ -33,14 +35,14 @@ public class FriendDbStorage {
     public Collection<User> findFriends(Long id) {
         validate.forFind(id);
         String sql = "SELECT u.* " + "FROM users u " + "JOIN friends f ON f.friend_id = u.id WHERE f.user_id = ? ORDER BY u.id ";
-        return jdbcTemplate.query(sql, UserMapper::mapRowToUser, id);
+        return jdbcTemplate.query(sql, userMapper, id);
     }
 
     public Collection<User> findCommonFriends(Long userId, Long otherId) {
         validate.forCommonFriends(userId, otherId);
         String sql =
-            "SELECT u.* FROM users u JOIN friends f1 ON f1.friend_id = u.id JOIN friends f2 ON f2.friend_id = u.id WHERE f1.user_id = ? AND f2.user_id = ? ORDER BY u.id ";
-        return jdbcTemplate.query(sql, UserMapper::mapRowToUser, userId, otherId);
+                "SELECT u.* FROM users u JOIN friends f1 ON f1.friend_id = u.id JOIN friends f2 ON f2.friend_id = u.id WHERE f1.user_id = ? AND f2.user_id = ? ORDER BY u.id ";
+        return jdbcTemplate.query(sql, userMapper, userId, otherId);
     }
 
 }

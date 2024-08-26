@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.service.DirectorService;
 import java.util.List;
 
+@SuppressWarnings("unused")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/directors")

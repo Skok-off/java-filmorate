@@ -1,21 +1,19 @@
 package ru.yandex.practicum.filmorate.validation;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
+
 import java.util.Objects;
 
 @RequiredArgsConstructor
 @Component
 public class FriendValidator {
 
-    @Autowired
     private final UserDbStorage userDbStorage;
-    @Autowired
     private final JdbcTemplate jdbcTemplate;
 
     public void forAdd(Long userId, Long friendId) {

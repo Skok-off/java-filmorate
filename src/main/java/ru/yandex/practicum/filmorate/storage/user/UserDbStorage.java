@@ -27,11 +27,12 @@ public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final UserValidator validate;
     private final FilmMapper filmMapper;
+    private final UserMapper userMapper;
 
     @Override
     public Collection<User> findAll() {
         log.info("Запрошен список пользователей");
-        return jdbcTemplate.query("SELECT * FROM users ORDER BY id", UserMapper::mapRowToUser);
+        return jdbcTemplate.query("SELECT * FROM users ORDER BY id", userMapper);
     }
 
     @Override
@@ -60,13 +61,13 @@ public class UserDbStorage implements UserStorage {
                 "UPDATE users SET name = COALESCE(?, name), login = COALESCE(?, login), email = ?, birthday = COALESCE(?, birthday) WHERE id = ?";
         jdbcTemplate.update(sql, newUser.getName(), newUser.getLogin(), newUser.getEmail(), newUser.getBirthday(), id);
         log.info("Обновлен пользователь с id = " + id);
-        return jdbcTemplate.queryForObject("SELECT * FROM users WHERE id = ?", UserMapper::mapRowToUser, id);
+        return jdbcTemplate.queryForObject("SELECT * FROM users WHERE id = ?", userMapper, id);
     }
 
     @Override
     public User getUser(Long id) {
         try {
-            return jdbcTemplate.queryForObject("SELECT * FROM users WHERE id = ?", UserMapper::mapRowToUser, id);
+            return jdbcTemplate.queryForObject("SELECT * FROM users WHERE id = ?", userMapper, id);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Пользователь " + id + " не найден");
         }
@@ -90,7 +91,7 @@ public class UserDbStorage implements UserStorage {
 
     public boolean userExists(Long userId) {
         String sql = "SELECT EXISTS (SELECT 1 FROM users WHERE id = ?)";
-        return jdbcTemplate.queryForObject(sql, Boolean.class, userId);
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, userId));
     }
 
     public Collection<Film> getRecommendations(Long id) {
@@ -109,7 +110,6 @@ public class UserDbStorage implements UserStorage {
                 "JOIN likes l ON f.id = l.film_id " +
                 "JOIN similar_users su ON l.user_id = su.user_id " +
                 "WHERE f.id NOT IN (SELECT film_id FROM likes WHERE user_id = ?);";
-
         return jdbcTemplate.query(sql, filmMapper, id, id, id);
     }
 }
