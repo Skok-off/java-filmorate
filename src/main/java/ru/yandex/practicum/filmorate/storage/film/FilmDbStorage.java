@@ -179,7 +179,7 @@ public class FilmDbStorage implements FilmStorage {
                     SELECT *
                     FROM films
                     WHERE id IN (SELECT film_id FROM directors_films WHERE director_id = ?)
-                    ORDER BY YEAR(release) DESC
+                    ORDER BY YEAR(release)
                     """;
                 break;
         }
