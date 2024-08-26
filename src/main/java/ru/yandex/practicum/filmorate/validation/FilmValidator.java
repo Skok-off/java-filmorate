@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.validation;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.errors.ErrorCode;
@@ -10,15 +9,13 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.helper.Constants;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
-
 import java.util.Objects;
 
 @RequiredArgsConstructor
 @Component
 public class FilmValidator {
-    @Autowired
+
     private final MpaDbStorage mpaDbStorage;
-    @Autowired
     private final JdbcTemplate jdbcTemplate;
 
     public void forCreate(Film film) {
@@ -64,4 +61,5 @@ public class FilmValidator {
             throw new ValidationException(ErrorCode.DURATION_NOT_POSITIVE.getMessage());
         }
     }
+
 }

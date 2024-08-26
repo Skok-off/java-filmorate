@@ -2,23 +2,18 @@ package ru.yandex.practicum.filmorate.storage.friend;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.validation.FriendValidator;
-
 import java.util.Collection;
 
 @Slf4j
 @RequiredArgsConstructor
 @Repository
 public class FriendDbStorage {
-
-    @Autowired
     private final JdbcTemplate jdbcTemplate;
-    @Autowired
     private final FriendValidator validate;
 
     public void addFriend(Long userId, Long friendId) {
@@ -43,7 +38,9 @@ public class FriendDbStorage {
 
     public Collection<User> findCommonFriends(Long userId, Long otherId) {
         validate.forCommonFriends(userId, otherId);
-        String sql = "SELECT u.* FROM users u JOIN friends f1 ON f1.friend_id = u.id JOIN friends f2 ON f2.friend_id = u.id WHERE f1.user_id = ? AND f2.user_id = ? ORDER BY u.id ";
+        String sql =
+            "SELECT u.* FROM users u JOIN friends f1 ON f1.friend_id = u.id JOIN friends f2 ON f2.friend_id = u.id WHERE f1.user_id = ? AND f2.user_id = ? ORDER BY u.id ";
         return jdbcTemplate.query(sql, UserMapper::mapRowToUser, userId, otherId);
     }
+
 }

@@ -30,4 +30,5 @@ public class ErrorHandler {
     public ErrorResponse handleNotKnownException(Exception e) {
         return new ErrorResponse("Произошла ошибка: " + e.getMessage());
     }
+
 }
