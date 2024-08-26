@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/films")
+@Slf4j
 public class FilmController {
 
     private final FilmService filmService;
@@ -71,6 +74,13 @@ public class FilmController {
     @GetMapping("/common")
     public Collection<Film> getCommonPopularFilms(@RequestParam Long userId, @RequestParam Long friendId) {
         return filmService.getCommonPopularFilm(userId, friendId);
+    }
+
+    @GetMapping("/search")
+    public List<Film> search(@RequestParam @NotBlank String query,
+                               @RequestParam(defaultValue = "title", required = false) String by) {
+        log.info("Поиск по by= {} ", by);
+        return filmService.search(query, by);
     }
 
     @GetMapping("/director/{directorId}")

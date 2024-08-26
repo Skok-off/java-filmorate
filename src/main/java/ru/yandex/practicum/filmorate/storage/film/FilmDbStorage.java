@@ -112,7 +112,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film getFilm(Long id) {
         try {
-            Film film = jdbcTemplate.queryForObject("SELECT * FROM films WHERE id = ?", filmMapper::mapRowToFilm, id);
+            Film film = jdbcTemplate.queryForObject("SELECT * FROM films WHERE id = ?", filmMapper, id);
             if (Objects.nonNull(film)) {
                 film.setGenres(genreDbStorage.findFilmGenres(film));
                 film.setDirectors(directorDbStorage.findFilmDirectors(id));
@@ -149,6 +149,28 @@ public class FilmDbStorage implements FilmStorage {
             .collect(Collectors.toList());
     }
 
+    public List<Film> search(String query, String by) {
+        if (!by.equals("director") && !by.equals("title") && !by.equals("director,title") && !by.equals("title,director")) {
+            log.error("Некорректные параметры запроса");
+            throw new NotFoundException("Некорректные параметры запроса");
+        }
+        log.info("Вывод популярных фильмов, с учетом поиска по подстроке {} в поле таблицы фильмов {} ", query, by);
+        String sql =
+                """
+                        SELECT f.*, COUNT(DISTINCT l.user_id) AS cnt_likes
+                               FROM films f
+                               LEFT JOIN likes l on f.id = l.film_id
+                               LEFT JOIN directors_films df on f.id = df.film_id
+                               LEFT JOIN directors d on df.director_id = d.id
+                               WHERE ((f.name) ILIKE CONCAT('%', ?, '%') AND ? LIKE '%title%') OR ((d.name) ILIKE CONCAT('%', ?, '%') AND ? LIKE '%director%')
+                               OR ((f.name) ILIKE CONCAT('%', ?, '%') AND (d.name) ILIKE CONCAT('%', ?, '%') AND (? LIKE '%title,director%' OR ? LIKE '%director,title%'))
+                               GROUP BY f.id
+                               ORDER BY cnt_likes DESC
+                """;
+
+        return jdbcTemplate.query(sql, filmMapper, query, by, query, by, query, query, by, by);
+    }
+
     @Override
     public boolean filmExists(Long filmId) {
         String sql = "SELECT EXISTS (SELECT 1 FROM films WHERE id = ?)";
@@ -163,9 +185,8 @@ public class FilmDbStorage implements FilmStorage {
             throw new NotFoundException("Не найдены фильмы, снятые этим режиссером");
         }
 
-        switch (sortBy.toLowerCase()) {
-            case "likes":
-                sql = """
+        sql = switch (sortBy.toLowerCase()) {
+            case "likes" -> """
                     SELECT f.*, COUNT(l.user_id) likes_count
                     FROM films f
                     left JOIN likes l
@@ -173,16 +194,14 @@ public class FilmDbStorage implements FilmStorage {
                     WHERE f.id IN (SELECT film_id FROM directors_films WHERE director_id = ?)
                     GROUP BY f.id ORDER BY likes_count DESC
                     """;
-                break;
-            case "year":
-                sql = """
+            case "year" -> """
                     SELECT *
                     FROM films
                     WHERE id IN (SELECT film_id FROM directors_films WHERE director_id = ?)
                     ORDER BY YEAR(release)
                     """;
-                break;
-        }
+            default -> sql;
+        };
         List<Film> sortedFilms = jdbcTemplate.query(sql, filmMapper, directorId);
 
         return sortedFilms.stream()
