@@ -60,6 +60,7 @@ public class LikeDbStorage {
         params = new MapSqlParameterSource();
         params.addValue("id", id);
         params.addValue("userId", userId);
+
         return params;
     }
 }
