@@ -3,16 +3,13 @@ package ru.yandex.practicum.filmorate.storage.genre;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,7 +48,7 @@ public class GenreDbStorage {
         Set<Long> genreIds = genres.stream().map(Genre::getId).collect(Collectors.toSet());
         checkGenres(genreIds);
         String sql =
-                """
+            """
                 DELETE FROM genres_films WHERE film_id = :id AND genre_id NOT IN (:genreIds)
                 """;
         Map<String, Object> deleteParams = new HashMap<>();
@@ -60,8 +57,8 @@ public class GenreDbStorage {
         namedParameterJdbcTemplate.update(sql, deleteParams);
 
         if (!CollectionUtils.isEmpty(genreIds)) {
-            String MergeSql =
-                    """
+            String mergeSql =
+                """
                     MERGE INTO genres_films (film_id, genre_id) KEY (film_id, genre_id) VALUES (:id, :genreId)
                     """;
             MapSqlParameterSource mergeParams = new MapSqlParameterSource();
@@ -72,7 +69,7 @@ public class GenreDbStorage {
                 mergeParams.addValue("genreId", genreId);
                 batchParams.add(new MapSqlParameterSource(mergeParams.getValues()));
             }
-            namedParameterJdbcTemplate.batchUpdate(MergeSql, batchParams.toArray(new SqlParameterSource[0]));
+            namedParameterJdbcTemplate.batchUpdate(mergeSql, batchParams.toArray(new SqlParameterSource[0]));
         }
 
         film.setGenres(findFilmGenres(film));
@@ -93,4 +90,5 @@ public class GenreDbStorage {
             throw new ValidationException("Некоторых жанров не существует.");
         }
     }
+
 }
