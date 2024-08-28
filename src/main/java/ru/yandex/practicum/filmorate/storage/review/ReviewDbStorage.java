@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.storage.review;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -13,17 +13,14 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.validation.ReviewValidator;
-
-import java.sql.PreparedStatement;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
 @Repository
 public class ReviewDbStorage {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final ReviewMapper mapper;
     private final FilmDbStorage filmDbStorage;
     private final UserDbStorage userDbStorage;
@@ -31,44 +28,51 @@ public class ReviewDbStorage {
 
     public Review create(Review review) {
         validate.forCreate(review);
-        String sql = "INSERT INTO reviews (content, user_id, film_id, is_positive) VALUES (?, ?, ?, ?)";
+        String sql = """
+            INSERT INTO reviews (content, user_id, film_id, is_positive)
+            VALUES (:content, :user_id, :film_id, :is_positive)
+            """;
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
-            ps.setString(1, review.getContent());
-            ps.setLong(2, review.getUserId());
-            ps.setLong(3, review.getFilmId());
-            ps.setBoolean(4, review.getIsPositive());
-            return ps;
-        }, keyHolder);
+        SqlParameterSource params = new MapSqlParameterSource()
+            .addValue("content", review.getContent())
+            .addValue("user_id", review.getUserId())
+            .addValue("film_id", review.getFilmId())
+            .addValue("is_positive", review.getIsPositive());
+        namedParameterJdbcTemplate.update(sql, params, keyHolder, new String[] {"id"});
         Long id = Objects.requireNonNull(keyHolder.getKey()).longValue();
         review.setReviewId(id);
         review.setUseful(0);
+
         return review;
     }
 
     public Review update(Review review) {
         getReview(review.getReviewId());
         String sql = """
-                UPDATE reviews
-                SET content = COALESCE(?, content),
-                    is_positive = COALESCE(?, is_positive)
-                WHERE id = ?;
-                """;
-        jdbcTemplate.update(sql, review.getContent(), review.getIsPositive(), review.getReviewId());
+            UPDATE reviews
+            SET content = COALESCE(:content, content),
+                is_positive = COALESCE(:is_positive, is_positive)
+            WHERE id = :id;
+            """;
+        SqlParameterSource params = new MapSqlParameterSource()
+            .addValue("content", review.getContent())
+            .addValue("is_positive", review.getIsPositive())
+            .addValue("id", review.getIsPositive());
+        namedParameterJdbcTemplate.update(sql, params);
+
         return getReview(review.getReviewId());
     }
 
     public Review getReview(Long id) {
         String sql = """
-                SELECT r.id, r.content, r.user_id, r.film_id, r.is_positive, COALESCE(SUM(rl.rating), 0) AS rating_sum
-                FROM reviews r
-                LEFT JOIN review_likes rl ON rl.review_id = r.id
-                WHERE r.id = ?
-                GROUP BY r.id, r.content, r.user_id, r.film_id, r.is_positive;
-                """;
+            SELECT r.id, r.content, r.user_id, r.film_id, r.is_positive, COALESCE(SUM(rl.rating), 0) AS rating_sum
+            FROM reviews r
+            LEFT JOIN review_likes rl ON rl.review_id = r.id
+            WHERE r.id = :id
+            GROUP BY r.id, r.content, r.user_id, r.film_id, r.is_positive;
+            """;
         try {
-            return jdbcTemplate.queryForObject(sql, mapper, id);
+            return namedParameterJdbcTemplate.queryForObject(sql, Map.of("id", id), mapper);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Отзыв с id = " + id + " не найден.");
         }
@@ -79,32 +83,43 @@ public class ReviewDbStorage {
             filmDbStorage.getFilm(filmId);
         }
         String sql = """
-                SELECT r.id, r.content, r.user_id, r.film_id, r.is_positive, COALESCE(SUM(rl.rating), 0) AS rating_sum
-                FROM reviews r
-                LEFT JOIN review_likes rl ON rl.review_id = r.id
-                WHERE r.film_id = COALESCE(?, r.film_id)
-                GROUP BY r.id, r.content, r.user_id, r.film_id, r.is_positive
-                ORDER BY COALESCE(SUM(rl.rating), 0) DESC
-                LIMIT ?;
-                """;
-        return jdbcTemplate.query(sql, mapper, filmId, count);
+            SELECT r.id, r.content, r.user_id, r.film_id, r.is_positive, COALESCE(SUM(rl.rating), 0) AS rating_sum
+            FROM reviews r
+            LEFT JOIN review_likes rl ON rl.review_id = r.id
+            WHERE r.film_id = COALESCE(:filmId, r.film_id)
+            GROUP BY r.id, r.content, r.user_id, r.film_id, r.is_positive
+            ORDER BY COALESCE(SUM(rl.rating), 0) DESC
+            LIMIT :count;
+            """;
+
+        SqlParameterSource params = new MapSqlParameterSource()
+            .addValue("filmId", filmId)
+            .addValue("count", count);
+
+        return namedParameterJdbcTemplate.query(sql, params, mapper);
     }
 
     public void delete(Long id) {
-        String sql = "DELETE reviews WHERE id = ?;";
-        jdbcTemplate.update(sql, id);
+        String sql = "DELETE FROM reviews WHERE id = :id;";
+
+        namedParameterJdbcTemplate.update(sql, Map.of("id", id));
     }
 
-    //like и dislike отличаются лишь знаком + или -, одного метода будет достаточно
+    //Like и dislike отличаются лишь знаком "+" или "-". Одного метода будет достаточно
     public void setRating(Long userId, Long reviewId, Integer rating) {
         userDbStorage.getUser(userId);
         getReview(reviewId);
         String sql = """
-                MERGE INTO review_likes (user_id, review_id, rating)
-                KEY (user_id, review_id)
-                VALUES (?, ?, ?);
-                """;
-        jdbcTemplate.update(sql, userId, reviewId, rating);
+            MERGE INTO review_likes (user_id, review_id, rating)
+            KEY (user_id, review_id)
+            VALUES (:userId, :reviewId, :rating);
+            """;
+        SqlParameterSource params = new MapSqlParameterSource()
+            .addValue("userId", userId)
+            .addValue("reviewId", reviewId)
+            .addValue("rating", rating);
+
+        namedParameterJdbcTemplate.update(sql, params);
     }
 
     //тут тоже реитинг передаю, чтобы при удалении дизлайка не удалялся лайк и наоборот
@@ -112,12 +127,17 @@ public class ReviewDbStorage {
         userDbStorage.getUser(userId);
         getReview(reviewId);
         String sql = """
-                DELETE review_likes
-                WHERE user_id = ?
-                AND review_id = ?
-                AND rating = ?;
-                """;
-        jdbcTemplate.update(sql, userId, reviewId, rating);
+            DELETE FROM review_likes
+            WHERE user_id = :userId
+            AND review_id = :reviewId
+            AND rating = :rating;
+            """;
+        SqlParameterSource params = new MapSqlParameterSource()
+            .addValue("userId", userId)
+            .addValue("reviewId", reviewId)
+            .addValue("rating", rating);
+
+        namedParameterJdbcTemplate.update(sql, params);
     }
 
 }

@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.storage.genre;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -11,10 +13,7 @@ import ru.yandex.practicum.filmorate.mapper.GenreMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -22,26 +21,26 @@ import java.util.stream.Collectors;
 @Repository
 public class GenreDbStorage {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final GenreMapper mapper;
 
     public Collection<Genre> findAll() {
         String sql = "SELECT * FROM genres ORDER BY id";
-        return jdbcTemplate.query(sql, mapper);
+        return namedParameterJdbcTemplate.query(sql, mapper);
     }
 
     public Genre findGenre(Long id) {
-        String sql = "SELECT * FROM genres WHERE id = ?";
+        String sql = "SELECT * FROM genres WHERE id = :id";
         try {
-            return jdbcTemplate.queryForObject(sql, mapper, id);
+            return namedParameterJdbcTemplate.queryForObject(sql, Map.of("id", id), mapper);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
     }
 
     public List<Genre> findFilmGenres(Film film) {
-        String sql = "SELECT g.* FROM genres g JOIN genres_films gf ON g.id = gf.genre_id WHERE gf.film_id = ?";
-        return jdbcTemplate.query(sql, mapper, film.getId());
+        String sql = "SELECT g.* FROM genres g JOIN genres_films gf ON g.id = gf.genre_id WHERE gf.film_id = :id";
+        return namedParameterJdbcTemplate.query(sql, Map.of("id", film.getId()), mapper);
     }
 
     public void addGenresToFilm(Film film) {
@@ -52,22 +51,30 @@ public class GenreDbStorage {
         Set<Long> genreIds = genres.stream().map(Genre::getId).collect(Collectors.toSet());
         checkGenres(genreIds);
         String sql =
-                "DELETE FROM genres_films WHERE film_id = ? AND genre_id NOT IN (" + genreIds.stream().map(id -> "?").collect(Collectors.joining(",")) +
-                        ")";
-        jdbcTemplate.update(sql, preparedStatement -> {
-            preparedStatement.setLong(1, film.getId());
-            int index = 2; // номера параметров для подстановки в запрос
-            for (Long id : genreIds) {
-                preparedStatement.setLong(index++, id);
-            }
-        });
+                """
+                DELETE FROM genres_films WHERE film_id = :id AND genre_id NOT IN (:genreIds)
+                """;
+        Map<String, Object> deleteParams = new HashMap<>();
+        deleteParams.put("id", film.getId());
+        deleteParams.put("genreIds", genreIds);
+        namedParameterJdbcTemplate.update(sql, deleteParams);
+
         if (!CollectionUtils.isEmpty(genreIds)) {
-            sql = "MERGE INTO genres_films (film_id, genre_id) KEY (film_id, genre_id) VALUES (?, ?)";
-            jdbcTemplate.batchUpdate(sql, genreIds, genreIds.size(), (preparedStatement, id) -> {
-                preparedStatement.setLong(1, film.getId());
-                preparedStatement.setLong(2, id);
-            });
+            String MergeSql =
+                    """
+                    MERGE INTO genres_films (film_id, genre_id) KEY (film_id, genre_id) VALUES (:id, :genreId)
+                    """;
+            MapSqlParameterSource mergeParams = new MapSqlParameterSource();
+            mergeParams.addValue("id", film.getId());
+            List<SqlParameterSource> batchParams = new ArrayList<>();
+
+            for (Long genreId : genreIds) {
+                mergeParams.addValue("genreId", genreId);
+                batchParams.add(new MapSqlParameterSource(mergeParams.getValues()));
+            }
+            namedParameterJdbcTemplate.batchUpdate(MergeSql, batchParams.toArray(new SqlParameterSource[0]));
         }
+
         film.setGenres(findFilmGenres(film));
     }
 
@@ -75,11 +82,15 @@ public class GenreDbStorage {
         if (genreIds.isEmpty()) {
             return;
         }
-        String sql = "SELECT COUNT(*) FROM genres WHERE id IN (" + genreIds.stream().map(id -> "?").collect(Collectors.joining(",")) + ")";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, genreIds.toArray());
+        String sql = "SELECT COUNT(*) FROM genres WHERE id IN (:genreIds)";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("genreIds", genreIds);
+
+        Integer count = namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+
         if (Objects.nonNull(count) && count != genreIds.size()) {
             throw new ValidationException("Некоторых жанров не существует.");
         }
     }
-
 }
