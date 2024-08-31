@@ -12,3 +12,18 @@ VALUES ('Комедия'),
        ('Триллер'),
        ('Документальный'),
        ('Боевик');
+
+MERGE INTO entity_types (name) KEY (name)
+VALUES ('films'),
+       ('users'),
+       ('reviews');
+
+MERGE INTO operations (name) KEY (name)
+VALUES ('REMOVE'),
+       ('ADD'),
+       ('UPDATE');
+
+MERGE INTO event_types (name) KEY (name)
+VALUES ('LIKE'),
+       ('REVIEW'),
+       ('FRIEND');

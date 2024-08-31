@@ -2,22 +2,22 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.event.EventDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikeDbStorage;
 
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class FilmService {
-    @Autowired
     private final FilmDbStorage filmDbStorage;
-    @Autowired
     private final LikeDbStorage likeDbStorage;
+    private final EventDbStorage eventDbStorage;
 
     public Collection<Film> findAll() {
         return filmDbStorage.findAll();
@@ -35,15 +35,36 @@ public class FilmService {
         return filmDbStorage.update(newFilm);
     }
 
+    public void deleteById(Long filmId) {
+        filmDbStorage.deleteById(filmId);
+    }
+
     public void like(Long id, Long userId) {
         likeDbStorage.like(id, userId);
+        eventDbStorage.add(userId, id, "films", "ADD", "LIKE");
     }
 
     public void removeLike(Long id, Long userId) {
         likeDbStorage.removeLike(id, userId);
+        eventDbStorage.add(userId, id, "films", "REMOVE", "LIKE");
     }
 
-    public Collection<Film> topFilms(int count) {
-        return likeDbStorage.topFilms(count);
+    public List<Film> topFilms(Long genreId, Integer year, int count) {
+        return likeDbStorage.topFilms(genreId, year, count);
+    }
+
+    public Collection<Film> getCommonPopularFilm(Long userId, Long friendId) {
+        return filmDbStorage.getCommonPopularFilm(userId, friendId);
+    }
+
+    public List<Film> getFilmsListByDirector(Long directorId, String sortBy) {
+        return filmDbStorage.getFilmsListByDirector(directorId, sortBy);
+    }
+
+    public List<Film> search(String query, String by) {
+        return filmDbStorage.search(query, by);
     }
 }
+
+
+
